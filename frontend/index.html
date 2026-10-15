@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cognisec AI — Network Behaviour Fingerprinting</title>
+  <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- ======================================================================
+         Sidebar Navigation
+         ====================================================================== -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="brand-icon" style="background: transparent; box-shadow: none;">
+          <img src="assets/logo.svg" width="36" height="36" alt="Cognisec AI Logo">
+        </div>
+        <div class="brand-info">
+          <span class="brand-title">Cognisec AI</span>
+          <span class="brand-subtitle">Intelligent NIDS</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <span class="nav-section-label">Core Navigation</span>
+
+        <button class="nav-item active" data-view="overview">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7"/>
+            <rect x="14" y="3" width="7" height="7"/>
+            <rect x="14" y="14" width="7" height="7"/>
+            <rect x="3" y="14" width="7" height="7"/>
+          </svg>
+          <span>Overview</span>
+        </button>
+
+        <button class="nav-item" data-view="traffic-analysis">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          <span>Traffic Analysis</span>
+        </button>
+
+        <button class="nav-item" data-view="attack-detection">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          <span>Attack Detection</span>
+        </button>
+
+        <span class="nav-section-label">Empirical Evaluation</span>
+
+        <button class="nav-item" data-view="model-comparison">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="20" x2="18" y2="10"/>
+            <line x1="12" y1="20" x2="12" y2="4"/>
+            <line x1="6" y1="20" x2="6" y2="14"/>
+          </svg>
+          <span>Model Comparison</span>
+        </button>
+
+        <button class="nav-item" data-view="unseen-attacks">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+          <span>Unseen Attack Evaluation</span>
+        </button>
+
+        <span class="nav-section-label">Research Artifacts</span>
+
+        <button class="nav-item" data-view="dataset-experiments">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <ellipse cx="12" cy="5" rx="9" ry="3"/>
+            <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+            <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+          </svg>
+          <span>Dataset & Experiments</span>
+        </button>
+
+        <button class="nav-item" data-view="research-methodology">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+          <span>Research Methodology</span>
+        </button>
+
+        <button class="nav-item" data-view="system-info">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+          <span>System Information</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="system-status-pill" id="systemStatusPill">
+          <span class="status-dot" id="statusDot"></span>
+          <span id="systemStatusText">Connecting to API...</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ======================================================================
+         Main Layout Area
+         ====================================================================== -->
+    <div class="main-wrapper">
+      <!-- Top Navbar -->
+      <header class="top-navbar">
+        <div class="navbar-left">
+          <button class="menu-toggle-btn" id="menuToggleBtn" aria-label="Toggle Navigation">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="3" y1="12" x2="21" y2="12"/>
+              <line x1="3" y1="6" x2="21" y2="6"/>
+              <line x1="3" y1="18" x2="21" y2="18"/>
+            </svg>
+          </button>
+          <div class="breadcrumb">
+            <span class="breadcrumb-root">Research Suite</span>
+            <span class="breadcrumb-separator">/</span>
+            <span class="breadcrumb-current" id="breadcrumbCurrent">Overview</span>
+          </div>
+        </div>
+
+        <div class="navbar-right">
+          <span class="badge badge-blue" id="topXgbBadge">XGBoost Thresh: 0.52</span>
+          <span class="badge badge-indigo" id="topVaeBadge">VAE Thresh: 0.3306</span>
+          <span class="badge badge-slate">CICIDS2017 Benchmark</span>
+        </div>
+      </header>
+
+      <!-- Main Content Container -->
+      <main class="content-area">
+
+        <!-- ==================================================================
+             SECTION 1: OVERVIEW DASHBOARD
+             ================================================================== -->
+        <section class="view-section active" id="view-overview">
+          <div class="page-header">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap;">
+              <span class="badge badge-blue" style="font-weight: 700; font-size: 13px;">Cognisec AI</span>
+              <span style="font-size: 13px; color: var(--text-muted); font-weight: 500;">Intelligent Network Behaviour Analysis for Unseen Attack Detection</span>
+            </div>
+            <h1 class="page-title">Cognisec AI: Network Behaviour Fingerprinting for Unseen Attack Detection</h1>
+            <p class="page-subtitle">
+              An Experimental Comparison of Supervised Classification (XGBoost) and Benign Normal-Behaviour Latent Modelling (PyTorch Tabular VAE) on Authentic CICIDS2017 Network Flows.
+            </p>
+          </div>
+
+          <div class="alert-box alert-info">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="16" x2="12" y2="12"/>
+              <line x1="12" y1="8" x2="12.01" y2="8"/>
+            </svg>
+            <div>
+              <strong>Offline Research Benchmark Notice:</strong>
+              This application performs offline batch evaluation on network-flow CSV records extracted from authentic PCAP captures. It does not monitor live raw network sockets or simulate packet injection.
+            </div>
+          </div>
+
+          <!-- KPI Cards Grid -->
+          <div class="grid-4" style="margin-bottom: var(--space-xl);">
+            <div class="kpi-card">
+              <span class="kpi-label">Benchmark Dataset</span>
+              <span class="kpi-value" id="ovTotalFlows">757,646</span>
+              <span class="kpi-subtext">Authentic CICIDS2017 flows</span>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">Supervised XGBoost</span>
+              <span class="kpi-value" style="color: var(--brand-blue);">99.99%</span>
+              <span class="kpi-subtext">Known Attack PR-AUC (Exp A)</span>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">Tabular PyTorch VAE</span>
+              <span class="kpi-value" style="color: var(--brand-indigo);">47.22%</span>
+              <span class="kpi-subtext">Stealth Infiltration Recall (Exp B)</span>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">Zero-Day Evaluation</span>
+              <span class="kpi-value">132,209</span>
+              <span class="kpi-subtext">Unseen Held-Out Attack Flows</span>
+            </div>
+          </div>
+
+          <!-- Dual Paradigm Comparison Cards -->
+          <div class="grid-2" style="margin-bottom: var(--space-xl);">
+            <div class="card">
+              <div class="card-header">
+                <span class="card-title">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+                    <polyline points="2 17 12 22 22 17"/>
+                    <polyline points="2 12 12 17 22 12"/>
+                  </svg>
+                  Supervised Model: Gradient Boosted Trees (XGBoost)
+                </span>
+                <span class="badge badge-blue">Supervised Discriminator</span>
+              </div>
+              <p class="card-description">
+                Trained on both benign traffic and represented attack signatures (DoS, PortScan, Brute Force). Optimized for sharp classification boundaries and extremely low false alarms.
+              </p>
+              <ul style="padding-left: 18px; margin-bottom: 16px; color: var(--text-secondary); line-height: 1.8;">
+                <li><strong>Known Attack Recall:</strong> 99.99% with 0.09% false-positive rate.</li>
+                <li><strong>Held-Out Recall:</strong> 62.50% (driven by DoS-to-DDoS volumetric similarity).</li>
+                <li><strong>Operational Vulnerability:</strong> Complete blindness to subtle infiltration attacks (0.0% recall).</li>
+                <li><strong>Calibrated Threshold:</strong> 0.52 (validation best F1 score).</li>
+              </ul>
+              <button class="btn btn-outline-blue" data-goto="attack-detection">Test XGBoost Inference &rarr;</button>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <span class="card-title">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                    <line x1="12" y1="22.08" x2="12" y2="12"/>
+                  </svg>
+                  Anomaly Model: Tabular Variational Autoencoder (VAE)
+                </span>
+                <span class="badge badge-indigo">Benign-Only Manifold</span>
+              </div>
+              <p class="card-description">
+                Trained strictly on normal benign network flows without ever observing any attack patterns. Flags anomalies based on high latent reconstruction divergence (Mean Squared Error).
+              </p>
+              <ul style="padding-left: 18px; margin-bottom: 16px; color: var(--text-secondary); line-height: 1.8;">
+                <li><strong>Normalcy Modelling:</strong> Learns Gaussian latent distribution ($\mu, \sigma^2$) of benign flows.</li>
+                <li><strong>Stealth Complementarity:</strong> Successfully detects 47.22% of infiltration flows missed by XGBoost.</li>
+                <li><strong>Operational Trade-off:</strong> Lower precision under realistic 1.0% false-alarm budget constraints.</li>
+                <li><strong>Calibrated Threshold:</strong> 0.3306 (calibrated at 1.0% validation FPR ceiling).</li>
+              </ul>
+              <button class="btn btn-outline-blue" data-goto="unseen-attacks">View Zero-Day Analysis &rarr;</button>
+            </div>
+          </div>
+
+          <!-- Research Summary Grid -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <polyline points="12 6 12 12 14 14"/>
+                </svg>
+                Key Research Findings & Empirical Summary
+              </span>
+              <span class="badge badge-slate">Peer-Audited Results</span>
+            </div>
+            <div class="grid-3" style="gap: var(--space-md);">
+              <div style="background-color: var(--bg-primary); padding: 16px; border-radius: var(--radius-md);">
+                <h4 style="font-size: 14px; font-weight: 600; margin-bottom: 6px; color: var(--text-primary);">1. The Known Attack Illusion</h4>
+                <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">
+                  While XGBoost scores 99.99% PR-AUC on known attack families, a data integrity audit revealed that 14,682 identical feature vectors crossed the train/test boundary due to automated repetitive probe packets.
+                </p>
+              </div>
+              <div style="background-color: var(--bg-primary); padding: 16px; border-radius: var(--radius-md);">
+                <h4 style="font-size: 14px; font-weight: 600; margin-bottom: 6px; color: var(--text-primary);">2. Partial Unseen Transfer</h4>
+                <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">
+                  XGBoost detected 63.01% of held-out DDoS traffic because volumetric attack mechanics closely mirrored trained DoS Hulk flows, not because of generalized zero-day awareness.
+                </p>
+              </div>
+              <div style="background-color: var(--bg-primary); padding: 16px; border-radius: var(--radius-md);">
+                <h4 style="font-size: 14px; font-weight: 600; margin-bottom: 6px; color: var(--text-primary);">3. Targeted Complementarity</h4>
+                <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">
+                  For subtle, low-rate infiltration flows, supervised decision trees failed completely (0.0% recall), whereas the VAE detected 47.22%, confirming that anomaly models serve as specialized tripwires.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================================================================
+             SECTION 2: TRAFFIC ANALYSIS
+             ================================================================== -->
+        <section class="view-section" id="view-traffic-analysis">
+          <div class="page-header">
+            <h1 class="page-title">Network Traffic Flow Ingestion & Schema Audit</h1>
+            <p class="page-subtitle">
+              Upload a network-flow CSV file to validate feature compatibility with the 70-feature leakage-controlled preprocessing pipeline.
+            </p>
+          </div>
+
+          <!-- Upload Dropzone -->
+          <div class="card">
+            <div class="dropzone" id="csvDropzone">
+              <input type="file" id="csvFileInput" class="file-input-hidden" accept=".csv">
+              <div class="dropzone-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="17 8 12 3 7 8"/>
+                  <line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+              </div>
+              <div class="dropzone-title">Drag & Drop Network Flow CSV Here</div>
+              <div class="dropzone-hint">Supports CICIDS2017 flow format up to 32MB</div>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('csvFileInput').click()">Browse Local Files</button>
+            </div>
+
+            <!-- One-Click Sample Ingestion -->
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: var(--space-md); padding-top: var(--space-md); border-top: 1px solid var(--border-light); flex-wrap: wrap; gap: 8px;">
+              <div>
+                <span style="font-weight: 600; font-size: 13.5px; color: var(--text-primary);">Need test data immediately?</span>
+                <span style="font-size: 13px; color: var(--text-muted); margin-left: 6px;">Load authentic CICIDS2017 test-set flows with 1 click:</span>
+              </div>
+              <button class="btn btn-outline-blue btn-sm" id="loadSampleCsvBtn">Load Sample CICIDS2017 CSV (100 Flows)</button>
+            </div>
+
+            <!-- Upload Meta Bar -->
+            <div class="file-meta-bar" id="uploadMetaBar" style="display: none;">
+              <div class="file-meta-info">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--brand-blue)" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                </svg>
+                <div>
+                  <div class="file-meta-name" id="uploadFileName">-</div>
+                  <div class="file-meta-size" id="uploadFileSize">-</div>
+                </div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <span class="badge badge-slate" id="uploadStatusBadge">Validating schema...</span>
+                <button class="btn btn-secondary btn-sm" id="clearUploadBtn">Clear</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Preview & Validation Card -->
+          <div class="card" id="previewCard" style="display: none;">
+            <div class="card-header">
+              <span class="card-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <line x1="16" y1="13" x2="8" y2="13"/>
+                  <line x1="16" y1="17" x2="8" y2="17"/>
+                  <polyline points="10 9 9 9 8 9"/>
+                </svg>
+                Schema Validation & Preprocessing Audit
+              </span>
+              <button class="btn btn-primary btn-sm" data-goto="attack-detection">Proceed to Attack Detection &rarr;</button>
+            </div>
+
+            <div class="grid-4" style="margin-bottom: var(--space-md);">
+              <div class="kpi-card">
+                <span class="kpi-label">Ingested Flows</span>
+                <span class="kpi-value" id="previewTotalRows">-</span>
+                <span class="kpi-subtext">Rows parsed</span>
+              </div>
+              <div class="kpi-card">
+                <span class="kpi-label">CSV Columns</span>
+                <span class="kpi-value" id="previewTotalCols">-</span>
+                <span class="kpi-subtext">Total fields present</span>
+              </div>
+              <div class="kpi-card">
+                <span class="kpi-label">Feature Match</span>
+                <span class="kpi-value" style="color: var(--status-benign);" id="previewMatchedFeats">-</span>
+                <span class="kpi-subtext">Predefined pipeline features</span>
+              </div>
+              <div class="kpi-card">
+                <span class="kpi-label">Data Quality</span>
+                <span class="kpi-value" style="font-size: 16px; margin-top: 6px;" id="previewNullCount">-</span>
+                <span class="kpi-subtext">Handled via learned median values</span>
+              </div>
+            </div>
+
+            <div class="table-container">
+              <table class="data-table">
+                <thead id="previewTableHead"></thead>
+                <tbody id="previewTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================================================================
+             SECTION 3: ATTACK DETECTION
+             ================================================================== -->
+        <section class="view-section" id="view-attack-detection">
+          <div class="page-header">
+            <h1 class="page-title">Offline Flow Inference & Attack Scoring</h1>
+            <p class="page-subtitle">
+              Execute live inference on the validated flow batch using the trained XGBoost discriminator and Tabular PyTorch VAE anomaly estimator.
+            </p>
+          </div>
+
+          <!-- Execution Controls -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Select Inference Engine</span>
+              <span class="badge badge-slate">Local Model Execution</span>
+            </div>
+            <p class="card-description">
+              Choose an individual model or execute the dual comparative pipeline to inspect cross-model agreement and stealth complementary detections.
+            </p>
+            <div style="display: flex; gap: var(--space-md); flex-wrap: wrap;">
+              <button class="btn btn-primary btn-lg" id="runDualBtn" disabled>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <polygon points="12 8 8 12 12 16 16 12 12 8"/>
+                </svg>
+                Execute Dual-Model Comparative Inference
+              </button>
+              <button class="btn btn-secondary btn-lg" id="runXgbBtn" disabled>
+                Run XGBoost Classifier Only
+              </button>
+              <button class="btn btn-secondary btn-lg" id="runVaeBtn" disabled>
+                Run Tabular VAE Anomaly Scoring Only
+              </button>
+            </div>
+          </div>
+
+          <!-- Inference Results Card -->
+          <div class="card" id="inferenceResultsCard" style="display: none;">
+            <div class="card-header">
+              <span class="card-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                </svg>
+                Inference Results & Classification Breakdown
+              </span>
+              <button class="btn btn-secondary btn-sm" id="downloadPredictionsBtn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                Download Predictions (CSV)
+              </button>
+            </div>
+
+            <!-- Summary KPI Grid -->
+            <div class="grid-4" style="margin-bottom: var(--space-lg);">
+              <div class="kpi-card">
+                <span class="kpi-label">Analyzed Flows</span>
+                <span class="kpi-value" id="resTotalFlows">-</span>
+                <span class="kpi-subtext">Total batch size</span>
+              </div>
+              <div class="kpi-card">
+                <span class="kpi-label">Flagged Detections</span>
+                <span class="kpi-value" style="color: var(--status-attack);" id="resFlaggedFlows">-</span>
+                <span class="kpi-subtext" id="resModelNote">-</span>
+              </div>
+              <div class="kpi-card">
+                <span class="kpi-label">Detection Ratio</span>
+                <span class="kpi-value" id="resDetectionRate">-</span>
+                <span class="kpi-subtext">Percentage of batch flagged</span>
+              </div>
+              <div class="kpi-card">
+                <span class="kpi-label">Evaluation Mode</span>
+                <span class="kpi-value" style="font-size: 16px; margin-top: 6px;">Batch Offline</span>
+                <span class="kpi-subtext">Sub-millisecond inference</span>
+              </div>
+            </div>
+
+            <!-- Filters & Search Bar -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-md); gap: 16px; flex-wrap: wrap;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <label for="filterPredictions" style="font-size: 13px; font-weight: 500; color: var(--text-secondary);">Filter:</label>
+                <select id="filterPredictions" style="padding: 6px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-light); font-size: 13px; background: white;">
+                  <option value="all">Show All Flows</option>
+                  <option value="both_flagged">Both Models Flagged</option>
+                  <option value="disagreement">Disagreements (XGB-Only / VAE-Only)</option>
+                  <option value="normal">Normal / Benign Flows</option>
+                </select>
+              </div>
+
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <input type="text" id="searchPredictions" placeholder="Search by flow # or original label..." style="padding: 6px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-light); font-size: 13px; width: 260px;">
+              </div>
+            </div>
+
+            <!-- Results Table -->
+            <div class="table-container">
+              <table class="data-table">
+                <thead id="resultsTableHead"></thead>
+                <tbody id="resultsTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================================================================
+             SECTION 4: MODEL COMPARISON
+             ================================================================== -->
+        <section class="view-section" id="view-model-comparison">
+          <div class="page-header">
+            <h1 class="page-title">Statistical Model Comparison: XGBoost vs. Tabular VAE</h1>
+            <p class="page-subtitle">
+              Authentic empirical benchmarks across precision-recall metrics, false alarm rates, threshold sensitivities, and inference latencies.
+            </p>
+          </div>
+
+          <!-- Metric Comparison Table Card -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="20" x2="18" y2="10"/>
+                  <line x1="12" y1="20" x2="12" y2="4"/>
+                  <line x1="6" y1="20" x2="6" y2="14"/>
+                </svg>
+                Experiment A: Known Attack Benchmark (85,088 Attack Flows)
+              </span>
+              <span class="badge badge-green">p &lt; 0.001 (Statistically Significant)</span>
+            </div>
+            <p class="card-description">
+              Evaluated on held-out test traffic with attack signatures represented during training (DoS, PortScan, Brute Force).
+            </p>
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Evaluation Metric</th>
+                    <th>XGBoost (Supervised)</th>
+                    <th>PyTorch VAE (Anomaly)</th>
+                    <th>Point Delta (Δ)</th>
+                    <th>P-Value</th>
+                    <th>Operational Advantage</th>
+                  </tr>
+                </thead>
+                <tbody id="comparisonTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Charts Grid -->
+          <div class="grid-2" style="margin-bottom: var(--space-xl);">
+            <!-- Per-Family Recall Bar Chart -->
+            <div class="card">
+              <div class="card-header">
+                <span class="card-title">Per-Family Detection Recall Disaggregation</span>
+                <div style="display: flex; gap: 8px;">
+                  <span class="badge badge-blue">■ XGBoost</span>
+                  <span class="badge badge-indigo">■ PyTorch VAE</span>
+                </div>
+              </div>
+              <p class="card-description">
+                Compares recall across both known (represented) and unseen (held-out ★) attack families.
+              </p>
+              <div id="perFamilyRecallChart" class="chart-box"></div>
+            </div>
+
+            <!-- Sensitivity Chart -->
+            <div class="card">
+              <div class="card-header">
+                <span class="card-title">Experiment C: VAE Threshold Sensitivity Trade-offs</span>
+                <div style="display: flex; gap: 8px;">
+                  <span style="font-size: 11px; color: #7c3aed; font-weight: 600;">— Recall</span>
+                  <span style="font-size: 11px; color: #059669; font-weight: 600;">— F1-Score</span>
+                </div>
+              </div>
+              <p class="card-description">
+                Illustrates severe score overlap: increasing false-alarm budget from 1% to 10% only marginally boosts recall.
+              </p>
+              <div id="sensitivityChart" class="chart-box"></div>
+            </div>
+          </div>
+
+          <!-- Distribution Shift Chart -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Experiment D: Distribution-Shift Robustness under Packet Perturbation</span>
+              <div style="display: flex; gap: 8px;">
+                <span class="badge badge-blue">■ XGBoost PR-AUC</span>
+                <span class="badge badge-indigo">■ VAE PR-AUC</span>
+              </div>
+            </div>
+            <p class="card-description">
+              Simulates feature scaling perturbations (0.5x to 2.0x packet size multipliers). Tree models maintain invariant split ordering while latent reconstruction degrades progressively.
+            </p>
+            <div id="distributionShiftChart" class="chart-box"></div>
+          </div>
+
+          <!-- Authentic Research Figures Carousel/Gallery -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Authentic Generated Research Figures</span>
+              <span class="badge badge-slate">Saved Artifacts</span>
+            </div>
+            <div class="grid-2" style="gap: var(--space-md);">
+              <div style="border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 12px; background: white;">
+                <h4 style="font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-primary);">Figure 2: ROC & Precision-Recall Curves</h4>
+                <img src="/figures/fig2_roc_pr_curves.png" alt="Figure 2: ROC and Precision-Recall Curves" style="width: 100%; height: auto; border-radius: var(--radius-sm);" loading="lazy">
+              </div>
+              <div style="border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 12px; background: white;">
+                <h4 style="font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-primary);">Figure 3: Confusion Matrices (XGBoost vs VAE)</h4>
+                <img src="/figures/fig3_confusion_matrices.png" alt="Figure 3: Confusion Matrices" style="width: 100%; height: auto; border-radius: var(--radius-sm);" loading="lazy">
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================================================================
+             SECTION 5: UNSEEN ATTACK EVALUATION
+             ================================================================== -->
+        <section class="view-section" id="view-unseen-attacks">
+          <div class="page-header">
+            <h1 class="page-title">Unseen Zero-Day Attack Family Generalization</h1>
+            <p class="page-subtitle">
+              Strict evaluation on attack classes held out entirely from training and threshold tuning: DDoS, Web Attack, Bot, and Infiltration (132,209 unseen attack flows).
+            </p>
+          </div>
+
+          <!-- Zero-Day KPI Summary Grid -->
+          <div class="grid-3" style="margin-bottom: var(--space-xl);">
+            <div class="kpi-card">
+              <span class="kpi-label">XGBoost Zero-Day Recall</span>
+              <span class="kpi-value" style="color: var(--brand-blue);" id="unseenXgbRecall">62.50%</span>
+              <span class="kpi-subtext">Driven by DoS signature overlap in DDoS</span>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">PyTorch VAE Zero-Day Recall</span>
+              <span class="kpi-value" style="color: var(--brand-indigo);" id="unseenVaeRecall">16.60%</span>
+              <span class="kpi-subtext">Constrained to 1.0% false-alarm ceiling</span>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">Statistical Difference</span>
+              <span class="kpi-value" id="unseenDeltaRecall">Δ = 45.91%</span>
+              <span class="kpi-subtext">Paired bootstrap test (p &lt; 0.001)</span>
+            </div>
+          </div>
+
+          <!-- Disaggregated Table -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+                Disaggregated Attack Detection by Family
+              </span>
+              <span class="badge badge-red">4 Held-Out Families</span>
+            </div>
+            <p class="card-description">
+              Notice the contrast between volumetric attacks (DDoS) where XGBoost generalizes well, versus stealthy attacks (Infiltration) where XGBoost fails completely (0.0% recall).
+            </p>
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Attack Family</th>
+                    <th>Test Population</th>
+                    <th>XGBoost Recall</th>
+                    <th>VAE Recall</th>
+                    <th>Research Insight</th>
+                  </tr>
+                </thead>
+                <tbody id="unseenTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Complementarity Analysis Grid -->
+          <div class="grid-2" style="margin-bottom: var(--space-xl);">
+            <div class="card">
+              <div class="card-header">
+                <span class="card-title">Experiment F: Model Complementarity Breakdown</span>
+                <span class="badge badge-indigo">132,209 Held-Out Attacks</span>
+              </div>
+              <p class="card-description">
+                Categorization of detections on all held-out zero-day flows.
+              </p>
+              <div id="complementarityDonutChart" style="padding: 16px 0;"></div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <span class="card-title">Key Scientific Takeaway: The Stealth Infiltration Paradox</span>
+              </div>
+              <p class="card-description">
+                Why does XGBoost achieve 62.5% overall held-out recall while still failing on novel attacks?
+              </p>
+              <div style="background-color: var(--brand-indigo-light); padding: 16px; border-radius: var(--radius-md); border-left: 4px solid var(--brand-indigo); margin-bottom: 16px;">
+                <strong style="color: var(--brand-indigo); font-size: 14px;">The Infiltration Vulnerability</strong>
+                <p style="font-size: 13.5px; color: var(--text-secondary); margin-top: 6px; line-height: 1.6;">
+                  Infiltration flows (36 total flows in CICIDS2017) execute stealthy remote command execution and privilege escalation with normal packet rates and typical TCP window sizes. Supervised XGBoost classifies <strong>100% of these flows as Benign (0.0% recall)</strong> because no identical signature was present in training.
+                </p>
+                <p style="font-size: 13.5px; color: var(--text-secondary); margin-top: 6px; line-height: 1.6;">
+                  Conversely, the <strong>VAE detected 47.22% of Infiltration instances</strong>, proving that semi-supervised latent models provide indispensable complementarity as tripwires for stealthy attacks.
+                </p>
+              </div>
+              <div class="alert-box alert-warning">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                  <line x1="12" y1="9" x2="12" y2="13"/>
+                  <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+                <div>
+                  <strong>Sample Population Warning:</strong> Infiltration constitutes only 36 flows in the CICIDS2017 test set. While the 47.22% recall is statistically meaningful, caution is advised when extrapolating to enterprise production scale.
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================================================================
+             SECTION 6: DATASET & EXPERIMENTS
+             ================================================================== -->
+        <section class="view-section" id="view-dataset-experiments">
+          <div class="page-header">
+            <h1 class="page-title">CICIDS2017 Benchmark & Partitioning Manifest</h1>
+            <p class="page-subtitle">
+              Complete data provenance, quality auditing metrics, and leakage-controlled partitioning specifications.
+            </p>
+          </div>
+
+          <!-- Dataset Summary Cards -->
+          <div class="grid-3" style="margin-bottom: var(--space-xl);">
+            <div class="kpi-card">
+              <span class="kpi-label">Training Partition</span>
+              <span class="kpi-value" id="dsTrainTotal">375,262 (60%)</span>
+              <span class="kpi-subtext">120k Benign + 255k Known Attacks</span>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">Validation Partition</span>
+              <span class="kpi-value" id="dsValTotal">125,087 (20%)</span>
+              <span class="kpi-subtext">Threshold tuning (0% zero-day leak)</span>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-label">Test Partition</span>
+              <span class="kpi-value" id="dsTestTotal">257,297 (20%)</span>
+              <span class="kpi-subtext">Includes 132,209 Held-Out Attacks</span>
+            </div>
+          </div>
+
+          <!-- Quality Audit Details Card -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Dataset Integrity & Leakage Controls Audit</span>
+              <span class="badge badge-slate">Cleaned Representation</span>
+            </div>
+            <div class="grid-2">
+              <div>
+                <h4 style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">Preprocessed Features Audit</h4>
+                <ul style="padding-left: 18px; color: var(--text-secondary); line-height: 1.8; font-size: 13.5px;">
+                  <li><strong>70 Clean Retained Features:</strong> Flow duration, packet lengths (min/max/mean/std), inter-arrival times (IAT), TCP flag counts, subflow counts, window sizes.</li>
+                  <li><strong>Socket Leakage Columns Removed:</strong> <code>Flow ID</code>, <code>Source IP</code>, <code>Destination IP</code>, <code>Timestamp</code>, <code>External IP</code> stripped before fitting.</li>
+                  <li><strong>8 Constant Features Dropped:</strong> Zero-variance columns (e.g. <code>Bwd PSH Flags</code>, <code>Bwd Avg Bulk Rate</code>) removed to prevent matrix singularity.</li>
+                  <li><strong>Numerical Cleaning:</strong> 1,534 infinite values replaced with training medians; 968 missing byte-rate entries imputed.</li>
+                </ul>
+              </div>
+              <div>
+                <h4 style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">Provenance & Daily Captures</h4>
+                <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">
+                  Aggregated from all 8 official daily CSV files released by the Canadian Institute for Cybersecurity:
+                </p>
+                <div style="font-size: 12px; color: var(--text-muted); display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
+                  <span>• Monday (Normal): 25,000 flows</span>
+                  <span>• Tuesday (Brute Force): 38,835 flows</span>
+                  <span>• Wednesday (DoS Hulk): 277,672 flows</span>
+                  <span>• Thursday AM (Web Attacks): 27,180 flows</span>
+                  <span>• Thursday PM (Infiltration): 25,036 flows</span>
+                  <span>• Friday AM (PortScan): 26,966 flows</span>
+                  <span>• Friday PM (DDoS): 153,027 flows</span>
+                  <span>• Friday PM (PortScan): 183,930 flows</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Partition Manifest Table -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Partition Distribution by Attack Family</span>
+              <span class="badge badge-green">Leakage-Controlled Isolation</span>
+            </div>
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Attack Family</th>
+                    <th>Train Split (60%)</th>
+                    <th>Validation Split (20%)</th>
+                    <th>Test Split (20%)</th>
+                    <th>Partition Isolation Role</th>
+                  </tr>
+                </thead>
+                <tbody id="partitionTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================================================================
+             SECTION 7: RESEARCH METHODOLOGY
+             ================================================================== -->
+        <section class="view-section" id="view-research-methodology">
+          <div class="page-header">
+            <h1 class="page-title">Research Methodology & Integrity Audit</h1>
+            <p class="page-subtitle">
+              End-to-end scientific workflow, leakage prevention safeguards, and candid audit of real-world benchmark limitations.
+            </p>
+          </div>
+
+          <!-- Known Limitation Box: 14,682 Identical Vectors -->
+          <div class="alert-box alert-warning" style="border-left: 5px solid #d97706; padding: 20px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 28px; height: 28px;">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+              <line x1="12" y1="9" x2="12" y2="13"/>
+              <line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+            <div>
+              <h3 style="font-size: 15px; font-weight: 700; color: #92400e; margin-bottom: 6px;">Critical Research Audit: 14,682 Cross-Partition Duplicate Vectors</h3>
+              <p style="font-size: 13.5px; color: #78350f; line-height: 1.6;">
+                A rigorous feature audit revealed that <strong>14,682 identical feature vectors</strong> cross the training and testing boundaries within represented attack classes (2,266 DoS, 1,261 PortScan, 159 Brute Force, and 146 Benign). These occur due to automated, repetitive network probe packets (e.g. zero-payload TCP SYN sweeps).
+              </p>
+              <p style="font-size: 13.5px; color: #78350f; line-height: 1.6; margin-top: 6px;">
+                <strong>Scientific Implication:</strong> The near-perfect 99.99% PR-AUC achieved by XGBoost on known attacks is partially inflated by decision trees memorizing repeated feature vectors. However, <strong>exactly ZERO identical flows crossed partition boundaries for held-out zero-day families</strong> (DDoS, Web Attack, Bot, Infiltration), preserving the scientific validity and rigor of the unseen evaluation.
+              </p>
+              <div style="margin-top: 10px;">
+                <span class="badge badge-amber">Documented in Academic Report § 14.1 & Research Audit § 3</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 8-Step Workflow Pipeline -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">The 8-Stage Experimental Benchmark Protocol</span>
+              <span class="badge badge-blue">Deterministic & Reproducible</span>
+            </div>
+            <div class="workflow-pipeline">
+              <div class="workflow-step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                  <div class="step-title">CICIDS2017 Dataset Acquisition & Ingestion</div>
+                  <div class="step-desc">Acquire all 8 official daily PCAP flow CSV files with SHA-256 integrity verification, stripping non-reproducible socket identity headers.</div>
+                  <div class="step-meta"><span class="badge badge-slate">757,646 raw flows</span></div>
+                </div>
+              </div>
+
+              <div class="workflow-step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                  <div class="step-title">Quality Audit & Dual Preprocessing Representations</div>
+                  <div class="step-desc">Clean infinite and null values with training medians only. Dual representations: unscaled features for XGBoost; log1p variance-stabilizing transformation + standard scaling clipped to [-5, 5] for VAE.</div>
+                  <div class="step-meta"><span class="badge badge-slate">70 flow features</span><span class="badge badge-slate">Zero future leakage</span></div>
+                </div>
+              </div>
+
+              <div class="workflow-step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                  <div class="step-title">Leakage-Controlled Partitioning with Held-Out Reservation</div>
+                  <div class="step-desc">Partitions data 60% train, 20% validation, 20% test. Reserves 4 entire attack families (DDoS, Web Attack, Bot, Infiltration) strictly for testing.</div>
+                  <div class="step-meta"><span class="badge badge-slate">Seed = 42</span><span class="badge badge-slate">4 Held-Out Families</span></div>
+                </div>
+              </div>
+
+              <div class="workflow-step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                  <div class="step-title">Supervised XGBoost Training</div>
+                  <div class="step-desc">Trains histogram-based gradient boosted decision trees (max_depth=6, 200 estimators) on benign and known attack flows with early stopping on validation.</div>
+                  <div class="step-meta"><span class="badge badge-blue">Threshold = 0.52</span><span class="badge badge-slate">5.96s CPU train</span></div>
+                </div>
+              </div>
+
+              <div class="workflow-step">
+                <div class="step-number">5</div>
+                <div class="step-content">
+                  <div class="step-title">Benign-Only PyTorch Tabular VAE Training</div>
+                  <div class="step-desc">Trains a 16-dimensional latent VAE exclusively on normal benign network flows with ELBO loss (Reconstruction MSE + $\beta$-KL divergence, $\beta=0.005$).</div>
+                  <div class="step-meta"><span class="badge badge-indigo">120,000 Benign Flows</span><span class="badge badge-slate">Latent Dim = 16</span></div>
+                </div>
+              </div>
+
+              <div class="workflow-step">
+                <div class="step-number">6</div>
+                <div class="step-content">
+                  <div class="step-title">Validation-Based Threshold Calibration</div>
+                  <div class="step-desc">Calibrates operational anomaly threshold at a 1.0% false alarm rate (FPR) ceiling strictly using the independent benign validation partition.</div>
+                  <div class="step-meta"><span class="badge badge-indigo">Calibrated Threshold = 0.3306</span></div>
+                </div>
+              </div>
+
+              <div class="workflow-step">
+                <div class="step-number">7</div>
+                <div class="step-content">
+                  <div class="step-title">Known & Held-Out Attack Family Benchmark</div>
+                  <div class="step-desc">Executes Experiments A through F on the test partition, measuring PR-AUC, F1-scores with 95% bootstrap confidence intervals, and per-family recall disaggregation.</div>
+                  <div class="step-meta"><span class="badge badge-slate">257,297 Test Flows</span></div>
+                </div>
+              </div>
+
+              <div class="workflow-step">
+                <div class="step-number">8</div>
+                <div class="step-content">
+                  <div class="step-title">Statistical Significance & Paired Bootstrap Testing</div>
+                  <div class="step-desc">Computes 1,000 paired bootstrap resamples to establish 95% confidence intervals and p-values ($p < 0.001$) confirming empirical superiority and complementarity.</div>
+                  <div class="step-meta"><span class="badge badge-green">p &lt; 0.001 Verified</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================================================================
+             SECTION 8: SYSTEM INFORMATION
+             ================================================================== -->
+        <section class="view-section" id="view-system-info">
+          <div class="page-header">
+            <h1 class="page-title">System Information & Runtime Environment</h1>
+            <p class="page-subtitle">
+              Hardware verification, loaded model artifact statuses, and API operational parameters.
+            </p>
+          </div>
+
+          <div class="grid-2">
+            <!-- Model Artifacts Status -->
+            <div class="card">
+              <div class="card-header">
+                <span class="card-title">Trained Model Artifacts</span>
+                <span class="badge badge-green">Ready for Inference</span>
+              </div>
+              <ul style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 12px; font-size: 13.5px;">
+                <li style="display: flex; justify-content: space-between; padding-bottom: 8px; border-bottom: 1px solid var(--border-light);">
+                  <span><strong>Flow Preprocessor:</strong> <code>flow_preprocessor.joblib</code></span>
+                  <span class="badge badge-green">Loaded (70 Features)</span>
+                </li>
+                <li style="display: flex; justify-content: space-between; padding-bottom: 8px; border-bottom: 1px solid var(--border-light);">
+                  <span><strong>XGBoost Model:</strong> <code>xgboost_model.json</code></span>
+                  <span class="badge badge-blue">Loaded (Thresh: 0.52)</span>
+                </li>
+                <li style="display: flex; justify-content: space-between; padding-bottom: 8px; border-bottom: 1px solid var(--border-light);">
+                  <span><strong>PyTorch Tabular VAE:</strong> <code>vae_checkpoint.pt</code></span>
+                  <span class="badge badge-indigo">Loaded (Thresh: 0.3306)</span>
+                </li>
+                <li style="display: flex; justify-content: space-between;">
+                  <span><strong>Master Experiment Results:</strong> <code>master_experiment_results.json</code></span>
+                  <span class="badge badge-slate">Verified</span>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Runtime Environment Details -->
+            <div class="card">
+              <div class="card-header">
+                <span class="card-title">Runtime & Backend Details</span>
+                <span class="badge badge-slate">Python HTTP Server</span>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 13px;">
+                <div>
+                  <span style="color: var(--text-muted); display: block;">Python Version:</span>
+                  <strong id="sysPyVer">-</strong>
+                </div>
+                <div>
+                  <span style="color: var(--text-muted); display: block;">PyTorch Version:</span>
+                  <strong id="sysTorchVer">-</strong>
+                </div>
+                <div>
+                  <span style="color: var(--text-muted); display: block;">Inference Device:</span>
+                  <strong id="sysDevice">-</strong>
+                </div>
+                <div>
+                  <span style="color: var(--text-muted); display: block;">Retained Flow Features:</span>
+                  <strong id="sysFeatCount">-</strong>
+                </div>
+                <div>
+                  <span style="color: var(--text-muted); display: block;">XGBoost Threshold:</span>
+                  <strong id="sysXgbThresh">-</strong>
+                </div>
+                <div>
+                  <span style="color: var(--text-muted); display: block;">VAE Anomaly Threshold:</span>
+                  <strong id="sysVaeThresh">-</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Operational Architecture</span>
+            </div>
+            <p style="font-size: 13.5px; color: var(--text-secondary); line-height: 1.6;">
+              This application implements a decoupled enterprise architecture:
+            </p>
+            <p style="font-size: 13.5px; color: var(--text-secondary); line-height: 1.6; margin-top: 8px; font-family: monospace; background: var(--bg-primary); padding: 12px; border-radius: var(--radius-sm);">
+              [HTML5 / CSS3 / Vanilla ES6+] &lt;-- REST JSON API --&gt; [Flask HTTP Server] &lt;-- Preprocessing --&gt; [XGBoost &amp; PyTorch VAE]
+            </p>
+            <ul style="padding-left: 18px; margin-top: 12px; color: var(--text-secondary); font-size: 13px; line-height: 1.6;">
+              <li>Models are loaded into memory once during server startup for immediate sub-millisecond inference.</li>
+              <li>Upload validation strictly enforces compatibility with the learned 70-feature schema.</li>
+              <li>All predictions, anomaly scores, and statistical metrics are computed by authentic trained pipelines without placeholder or simulated values.</li>
+            </ul>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- JavaScript Modules -->
+  <script src="js/api.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

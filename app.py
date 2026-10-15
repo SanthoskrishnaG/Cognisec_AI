@@ -1,14 +1,34 @@
 import json
+import os
+import sys
 from pathlib import Path
 import io
-import joblib
-import numpy as np
-import pandas as pd
 import streamlit as st
-import torch
 
-from src.models.xgboost_model import XGBoostClassifierWrapper
-from src.models.vae_model import TabularVAE, VAETrainer
+# Check for required ML dependencies before loading models
+try:
+    import torch
+    import xgboost
+    import joblib
+    import numpy as np
+    import pandas as pd
+    from src.models.xgboost_model import XGBoostClassifierWrapper
+    from src.models.vae_model import TabularVAE, VAETrainer
+except ImportError as e:
+    st.set_page_config(page_title="Cognisec AI - Environment Error", page_icon="⚠️")
+    st.error(
+        f"### ⚠️ Cognisec AI Environment Configuration Error\n\n"
+        f"**Missing Dependency:** `{e}`\n\n"
+        f"**Active Interpreter:** `{sys.executable}` (Python {sys.version.split()[0]})\n\n"
+        f"PyTorch and XGBoost are installed in the project virtual environment (`.venv`).\n\n"
+        f"**Recommended Launch Command:**\n"
+        f"```bash\n"
+        f"python main.py --step streamlit\n"
+        f"# or\n"
+        f".\\.venv\\Scripts\\python.exe -m streamlit run app.py\n"
+        f"```"
+    )
+    st.stop()
 
 # Page Configuration
 st.set_page_config(

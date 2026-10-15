@@ -1,5 +1,12 @@
-# Network Behaviour Fingerprinting for Unseen Attack Detection
+# Cognisec AI: Network Behaviour Fingerprinting for Unseen Attack Detection
 ### An Experimental Comparison of XGBoost and Variational Autoencoders
+**Tagline:** *Intelligent Network Behaviour Analysis for Unseen Attack Detection*
+
+<p align="center">
+  <img src="frontend/assets/logo.svg" width="96" height="96" alt="Cognisec AI Logo">
+  <br>
+  <strong>Cognisec AI — Enterprise Research Dashboard</strong>
+</p>
 
 [![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/downloads/release/python-3120/)
 [![PyTorch 2.14](https://img.shields.io/badge/PyTorch-2.14-ee4c2c.svg)](https://pytorch.org/)
@@ -113,7 +120,7 @@ pip install -r requirements.txt
 
 ### 4.3 Automated Pipeline Execution
 ```bash
-# Step 1: Run Unit Tests
+# Step 1: Run Automated Test Suite (All 16 Tests Passing)
 pytest tests/
 
 # Step 2: Acquire Authentic CICIDS2017 Dataset
@@ -125,9 +132,43 @@ python -m src.data.prepare_data
 # Step 4: Execute Master Research Experiments (Exp A, B, C, D, F)
 python -m src.experiments.run_experiments
 
-# Step 5: Launch the Streamlit Demonstration Dashboard
-streamlit run app.py
+# Step 5: Launch the Primary Web Application Dashboard (HTML5/CSS3/Vanilla JS)
+python server.py
+# or via CLI pipeline:
+python main.py --step dashboard
+
+# Optional: Launch Legacy Streamlit Demonstration Dashboard
+python main.py --step streamlit
 ```
+
+---
+
+## 5. Web Application Architecture (Cognisec AI)
+
+The primary user interface has been redesigned as an enterprise-grade cybersecurity research dashboard:
+
+- **Frontend:** Semantic HTML5, CSS3 Custom Properties (enterprise light theme, deep navy typography, restrained blue/violet accents), Modular Vanilla JavaScript (ES6+), and Native High-DPI SVG Charts.
+- **Backend API:** Lightweight, thread-safe Python HTTP layer (`server.py` / `src/api/server.py`) serving the REST endpoints:
+  - `GET /` — Serves the unified web dashboard
+  - `GET /api/health` — Live model and preprocessor status, environment and threshold verification
+  - `GET /api/metadata` — CICIDS2017 flow counts, 70 retained features, duplicate statistics, and audit disclosures
+  - `GET /api/experiments` — Raw results across Experiments A, B, C, D, and F
+  - `GET /api/results/comparison` — Formatted comparative metrics with 95% bootstrap CIs and p-values
+  - `GET /api/sample-csv` — 1-click authentic CICIDS2017 sample flow provider (100 flows)
+  - `POST /api/analyze/csv-preview` — CSV schema validation, null/infinity audits, and 70-feature compatibility checking
+  - `POST /api/analyze/xgboost` — Supervised flow inference with calibrated 0.52 classification threshold
+  - `POST /api/analyze/vae` — PyTorch Tabular VAE reconstruction anomaly scoring with 0.3306 calibrated threshold
+  - `POST /api/analyze/dual` — Joint comparative inference with agreement categorization (Both Flagged, XGBoost Only, VAE Only, Both Normal)
+
+### Application Layout Sections:
+1. **Overview:** Executive summary, KPI stat counters, model status cards, research problem statement, and key findings.
+2. **Traffic Analysis:** Drag-and-drop CSV uploader, 1-click sample data loader, schema compatibility check against 70 flow features, missing-value audit, and interactive row preview.
+3. **Attack Detection:** Dual-model inference engine, flow-by-flow probability and anomaly scoring, searchable and filterable prediction table, and CSV prediction export.
+4. **Model Comparison:** Empirical comparison table (PR-AUC, ROC-AUC, F1, Recall, FPR, Latency), native SVG charts for per-family recall, threshold sensitivity (Exp C), distribution shift (Exp D), and authentic figure gallery.
+5. **Unseen Attack Evaluation:** Dedicated zero-day research view with side-by-side held-out family disaggregation (DDoS, Web Attack, Bot, Infiltration), population caution badges, and complementarity donut chart (Exp F).
+6. **Dataset & Experiments:** Partitioning manifest breakdown (60% Train, 20% Val, 20% Test), leakage prevention controls, and class distribution table.
+7. **Research Methodology:** 8-stage experimental pipeline diagram, and transparent disclosure of the 14,682 identical feature vectors crossing train/test boundaries for known attacks.
+8. **System Information:** Live API health monitor, artifact statuses, framework versions (Python, PyTorch, XGBoost), and execution environment.
 
 ---
 

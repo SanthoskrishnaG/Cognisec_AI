@@ -8,9 +8,13 @@ def test_imports():
     import matplotlib
     import seaborn
     import yaml
+    import flask
+    import joblib
 
     assert np.__version__ is not None
     assert pd.__version__ is not None
     assert xgb.__version__ is not None
     assert torch.__version__ is not None
     assert yaml.__version__ is not None
+    assert flask is not None
+

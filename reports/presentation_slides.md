@@ -1,10 +1,13 @@
-# Technical Presentation: Network Behaviour Fingerprinting
-## An Experimental Comparison of XGBoost and Variational Autoencoders for Unseen Cyberattack Detection
+# Technical Presentation: Cognisec AI — Network Behaviour Fingerprinting
+## Cognisec AI: Network Behaviour Fingerprinting for Unseen Attack Detection — An Experimental Comparison of XGBoost and Variational Autoencoders
+### Tagline: Intelligent Network Behaviour Analysis for Unseen Attack Detection
 
 ---
 
-### Slide 1: Title & Research Motivation
-- **Project Title:** Network Behaviour Fingerprinting for Unseen Attack Detection
+### Slide 1: Title, Branding & Research Motivation
+- **Product Name:** Cognisec AI
+- **Tagline:** Intelligent Network Behaviour Analysis for Unseen Attack Detection
+- **Full Academic Title:** Cognisec AI: Network Behaviour Fingerprinting for Unseen Attack Detection — An Experimental Comparison of XGBoost and Variational Autoencoders
 - **Research Question:** Can a deep learning model trained on normal network behaviour detect attack families excluded from supervised training, and how does its performance compare with XGBoost?
 - **Dataset:** Authentic CICIDS2017 (Canadian Institute for Cybersecurity)
 - **Models Evaluated:** Exactly Two — XGBoost (Supervised) vs. PyTorch Tabular VAE (Benign Anomaly Detection)
