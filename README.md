@@ -141,3 +141,5 @@ streamlit run app.py
 - **Figure 6 (`fig6_threshold_sensitivity.png`):** Operational trade-off curves sweeping false-alarm targets from 0.1% to 10.0%.
 - **Figure 7 (`fig7_distribution_shift_degradation.png`):** Generalisation degradation under packet size distribution shifts.
 - **Figure 8 (`fig8_model_disagreement.png`):** Complementarity analysis disaggregating detections on 132,209 unseen held-out attacks.
+#   C o g n i s e c _ A I  
+ 
