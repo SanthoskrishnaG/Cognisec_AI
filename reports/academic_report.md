@@ -7,7 +7,7 @@
 ---
 
 ## 1. Abstract
-Contemporary Network Intrusion Detection Systems (NIDS) are challenged by rapidly evolving zero-day attacks that evade signature-based detection. This study presents a rigorous experimental investigation comparing two foundational paradigms: supervised classification using **Extreme Gradient Boosting (XGBoost)** and semi-supervised normal-behaviour modelling using a **PyTorch Variational Autoencoder (VAE)**. Using authentic flow records from the **CICIDS2017** benchmark, we enforce strict leakage controls, time-aware partitioning, and held-out attack-family isolation (`DDoS`, `Web_Attack`, `Bot`, `Infiltration`). Empirical findings demonstrate that while XGBoost exhibits near-perfect discrimination on represented attack families (PR-AUC: 0.9999, Recall: 99.99%, FPR: 0.09%), it experiences selective degradation on unseen families (overall held-out recall: 62.50%). Conversely, the VAE—constrained to a 1.0% operational false-alarm budget on benign validation data—achieves an overall held-out recall of 9.09% but uniquely detects 16.67% of stealthy `Infiltration` attacks that completely evaded XGBoost (0.00% recall). Paired bootstrap hypothesis tests confirm statistical significance ($p < 0.001$). These results challenge the prevailing assumption that benign anomaly detectors universally outperform supervised models on zero-day attacks, highlighting targeted complementarity over universal superiority.
+Contemporary Network Intrusion Detection Systems (NIDS) are challenged by rapidly evolving zero-day attacks that evade signature-based detection. This study presents a rigorous experimental investigation comparing two foundational paradigms: supervised classification using **Extreme Gradient Boosting (XGBoost)** and semi-supervised normal-behaviour modelling using a **PyTorch Variational Autoencoder (VAE)**. Using authentic flow records from the **CICIDS2017** benchmark, we enforce strict leakage controls, time-aware partitioning, and held-out attack-family isolation (`DDoS`, `Web_Attack`, `Bot`, `Infiltration`). Methodological investigation revealed that raw RobustScaler preprocessing failed to normalize heavy-tailed timing attributes, causing single-feature distortion ($6.06 \times 10^{12}$ threshold). Implementing log-variance stabilization resolved this, establishing a mathematically sound threshold ($\tau = 0.3306$) and increasing VAE PR-AUC from 0.5974 to **0.9432**. Empirical findings demonstrate that while XGBoost exhibits near-perfect discrimination on represented attack families (PR-AUC: 0.9999, Recall: 99.99%, FPR: 0.09%), it experiences selective degradation on unseen families (overall held-out recall: 62.50%). Conversely, the VAE—constrained to a 1.0% operational false-alarm budget on benign validation data—achieves an overall held-out recall of 16.60% (up from 9.09%) and uniquely detects **47.22% of stealthy `Infiltration` attacks** that completely evaded XGBoost (0.00% recall). Paired bootstrap hypothesis tests confirm statistical significance ($p < 0.001$). These results challenge the prevailing assumption that benign anomaly detectors universally outperform supervised models on zero-day attacks, highlighting targeted complementarity over universal superiority.
 
 ---
 
@@ -135,47 +135,52 @@ Models were assessed using standard classification and operational metrics:
 ---
 
 ## 14. Results
-
+ 
 ### 14.1 Experiment A: Known Attack Detection
 On test flows containing benign traffic and represented attack families:
-- **XGBoost:** PR-AUC = **0.9999**, Recall = **99.99%**, Precision = **99.96%**, F1 = **0.9997**, FPR = **0.09%**.
-- **VAE:** PR-AUC = **0.5974**, Recall = **0.93%**, Precision = **44.40%**, F1 = **0.0183**, FPR = **1.16%**.
-- Inference latency: XGBoost achieved **0.0005 ms/flow** (1,960,000 flows/sec) versus VAE at **0.0059 ms/flow** (169,000 flows/sec).
-
+- **XGBoost:** PR-AUC = **0.9999**, Recall = **99.99%**, Precision = **99.95%**, F1 = **0.9997**, FPR = **0.09%**.
+- **VAE:** PR-AUC = **0.9432** (up from 0.5974 baseline), Recall = **25.89%** (up from 0.93%), Precision = **98.34%**, F1 = **0.4099**, FPR = **0.93%** (strictly satisfies the 1.0% operational ceiling).
+- Inference latency: XGBoost achieved **0.00049 ms/flow** (2,022,000 flows/sec) versus VAE at **0.00522 ms/flow** (191,000 flows/sec).
+ 
 ### 14.2 Experiment B: Held-Out Attack-Family Detection (Zero-Day)
 On the 132,209 unseen attack instances excluded from training:
-- **DDoS (128,027 flows):** XGBoost Recall = **63.01%**; VAE Recall = **9.38%**.
+- **DDoS (128,027 flows):** XGBoost Recall = **63.01%**; VAE Recall = **17.12%** (up from 9.38%).
 - **Web Attack (2,180 flows):** XGBoost Recall = **90.23%**; VAE Recall = **0.00%**.
-- **Infiltration (36 flows):** XGBoost Recall = **0.00%**; VAE Recall = **16.67%**.
-- **Botnet (1,966 flows):** XGBoost Recall = **0.00%**; VAE Recall = **0.00%**.
-- Overall Held-Out Recall: XGBoost = **62.50%**; VAE = **9.09%**.
-
+- **Infiltration (36 flows):** XGBoost Recall = **0.00%**; VAE Recall = **47.22%** (up from 16.67%).
+- **Botnet (1,966 flows):** XGBoost Recall = **0.00%**; VAE Recall = **0.56%** (up from 0.00%).
+- **DoS (50,645 flows - Known):** XGBoost Recall = **99.99%**; VAE Recall = **43.43%**.
+- **Heartbleed (3 flows - Known):** XGBoost Recall = **100.00%**; VAE Recall = **100.00%**.
+- Overall Held-Out Recall: XGBoost = **62.50%**; VAE = **16.60%** (up from 9.09%).
+ 
 ### 14.3 Experiment C: False-Alarm Sensitivity Trade-Offs
-Sweeping pre-declared benign false-alarm targets revealed severe anomaly score compression:
-- At 0.1% target FPR: Test FPR = 0.16%, Recall = 1.57%, F1 = 0.0309.
-- At 1.0% target FPR: Test FPR = 1.17%, Recall = 9.09%, F1 = 0.1660.
-- At 10.0% target FPR: Test FPR = 10.25%, Recall = 9.26%, F1 = 0.1648.
-Relaxing the false-alarm budget by a factor of 10 yielded only a marginal 0.17% increase in attack recall.
-
+Sweeping pre-declared benign validation false-alarm targets revealed the corrected operating curve:
+- At 0.1% target FPR: Threshold = 0.7857, Test FPR = 0.13%, Recall = 0.01%, F1 = 0.0002.
+- At 0.5% target FPR: Threshold = 0.4278, Test FPR = 0.48%, Recall = 9.13%, F1 = 0.1671.
+- At 1.0% target FPR: Threshold = 0.3306, Test FPR = 0.93%, Recall = 16.60%, F1 = 0.2840.
+- At 2.0% target FPR: Threshold = 0.2640, Test FPR = 1.89%, Recall = 42.29%, F1 = 0.5920.
+- At 5.0% target FPR: Threshold = 0.1723, Test FPR = 5.03%, Recall = 86.17%, F1 = 0.9182.
+- At 10.0% target FPR: Threshold = 0.1174, Test FPR = 10.14%, Recall = 93.66%, F1 = 0.9522.
+When the allowable false-alarm budget is relaxed from 1% to 5%, the VAE's attack recall surges from 16.60% to 86.17% (F1: 0.9182).
+ 
 ### 14.4 Experiment D: Distribution Shift Robustness
 Under packet length scaling multipliers from $0.5\times$ to $2.0\times$:
-- XGBoost PR-AUC remained exceptionally stable, degrading from 0.9991 to 0.9964.
-- VAE PR-AUC exhibited steady degradation from 0.8032 down to 0.7861.
-
+- XGBoost PR-AUC remained stable, degrading from 0.9991 to 0.9964.
+- VAE PR-AUC exhibited high robustness with bounded log-scaling: 0.9842 ($0.5\times$) $\to$ 0.9839 ($1.0\times$) $\to$ 0.9810 ($2.0\times$).
+ 
 ### 14.5 Experiment F: Complementarity Analysis
 Among 132,209 held-out attack instances:
-- Detected by Both Models: **12,005** (9.08%)
-- Detected by XGBoost ONLY: **70,630** (53.42%)
-- Detected by VAE ONLY: **7** (0.01% — specifically targeting Infiltration)
-- Missed by Both Approaches: **49,567** (37.49%)
-
+- Detected by Both Models: **21,521** (16.28%)
+- Detected by XGBoost ONLY: **61,114** (46.23%)
+- Detected by VAE ONLY: **420** (0.32% — including nearly half of all Infiltration flows)
+- Missed by Both Approaches: **49,154** (37.18%)
+ 
 ---
-
+ 
 ## 15. Statistical Analysis
 Non-parametric paired bootstrap testing (300 iterations, 95% confidence level) confirmed:
-- Known Attacks F1 Difference: $\Delta F1 = 0.9814$ (95% CI: [0.9801, 0.9827], $p < 0.001$).
-- Held-Out Recall Difference: $\Delta Recall = 0.5342$ (95% CI: [0.5312, 0.5372], $p < 0.001$).
-Both differences are statistically significant, confirming that XGBoost holds an empirical advantage across volumetric and structural threat classes even when unrepresented in training data.
+- Known Attacks F1 Difference: $\Delta F1 = 0.5898$ (95% CI: [0.5859, 0.5938], $p < 0.001$).
+- Held-Out Recall Difference: $\Delta Recall = 0.4591$ (95% CI: [0.4560, 0.4622], $p < 0.001$).
+Both differences remain statistically significant: XGBoost maintains higher recall on volumetric attacks due to structural feature overlaps, while the VAE provides unique targeted detection on subtle non-volumetric infiltration.
 
 ---
 

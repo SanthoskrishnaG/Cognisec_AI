@@ -89,10 +89,14 @@ class FlowPreprocessor:
             self.median_values[col] = med
 
         # Impute training features
-        imputed_features = df[self.feature_columns].fillna(self.median_values)
+        imputed_features = df[self.feature_columns].fillna(self.median_values).values.astype(np.float32)
 
-        # Fit feature scaler (e.g. RobustScaler) on training data
-        self.scaler.fit(imputed_features.values)
+        # Variance-stabilizing transformation for VAE: log1p on non-negative values
+        log_imputed = np.log1p(np.maximum(0, imputed_features))
+
+        # Fit feature scaler exclusively on training data
+        self.scaler = StandardScaler()
+        self.scaler.fit(log_imputed)
         self.is_fitted = True
         return self
 
@@ -104,7 +108,7 @@ class FlowPreprocessor:
         Transforms data into model-ready arrays.
         Returns:
             X_unscaled: np.ndarray (for XGBoost)
-            X_scaled: np.ndarray (for VAE)
+            X_scaled: np.ndarray (log1p + standard scaled for VAE)
             y_binary: np.ndarray (0 or 1)
             raw_labels: np.ndarray (original string labels for family-wise evaluation)
         """
@@ -122,7 +126,10 @@ class FlowPreprocessor:
                 imputed_df[col] = self.median_values[col]
 
         X_unscaled = imputed_df[self.feature_columns].values.astype(np.float32)
-        X_scaled = self.scaler.transform(X_unscaled).astype(np.float32)
+        X_log = np.log1p(np.maximum(0, X_unscaled))
+        X_scaled = self.scaler.transform(X_log).astype(np.float32)
+        # Bounded clipping to prevent extreme numerical divergence
+        X_scaled = np.clip(X_scaled, -5.0, 5.0)
 
         y_binary = df[self.binary_target_column].values.astype(np.int32) if self.binary_target_column in df.columns else np.zeros(len(df), dtype=np.int32)
         raw_labels = df[self.label_column].values.astype(str) if self.label_column in df.columns else np.array(["UNKNOWN"] * len(df))

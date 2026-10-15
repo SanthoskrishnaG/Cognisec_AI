@@ -255,9 +255,10 @@ def run_master_experiments():
     vae_shift_pr_aucs = []
 
     for factor in scaling_factors:
-        # Shift unscaled for XGBoost and scaled for VAE
+        # Shift unscaled for XGBoost and log1p-scaled for VAE
         X_test_shifted_xgb = apply_feature_shift(X_test_unscaled, feature_names, shift_type="packet_size_scale", severity=factor)
-        X_test_shifted_vae = preprocessor.scaler.transform(X_test_shifted_xgb).astype(np.float32)
+        X_test_shifted_log = np.log1p(np.maximum(0, X_test_shifted_xgb))
+        X_test_shifted_vae = np.clip(preprocessor.scaler.transform(X_test_shifted_log), -5.0, 5.0).astype(np.float32)
 
         probs_shift_xgb = xgb_wrapper.predict_proba(X_test_shifted_xgb)
         scores_shift_vae = vae_trainer.compute_anomaly_scores(X_test_shifted_vae)

@@ -23,13 +23,13 @@ This project delivers a **research-grade, leakage-controlled empirical benchmark
 
 | Metric / Experiment | XGBoost (Supervised) | PyTorch VAE (Benign Anomaly) | Statistical Finding & Significance |
 | :--- | :--- | :--- | :--- |
-| **Known Attack PR-AUC (Exp A)** | **0.9999** | 0.5974 | Baseline comparison on seen families ($p < 0.001$) |
-| **Known Attack F1-Score (Exp A)** | **0.9997** [0.9996, 0.9998] | 0.0183 [0.0171, 0.0196] | $\Delta F1 = 0.9814$ (Significant: True) |
-| **Known Attack Recall (Exp A)** | **99.99%** | 0.93% | At 1.0% benign false-alarm constraint |
-| **Known Attack FPR (Exp A)** | **0.09%** | 1.16% | Enforced via benign validation percentile |
-| **Held-Out (Zero-Day) Recall (Exp B)**| **62.50%** [0.6229, 0.6277] | 9.09% [0.0891, 0.0923] | $\Delta Recall = 0.5342$ ($p < 0.001$) |
-| **Infiltration Attack Recall (Exp B)**| 0.00% | **16.67%** | **VAE detected subtle stealth attacks missed completely by XGBoost** |
-| **Inference Latency** | **0.0005 ms/sample** | 0.0059 ms/sample | XGBoost is ~11x faster on CPU |
+| **Known Attack PR-AUC (Exp A)** | **0.9999** | **0.9432** | VAE achieves high PR-AUC under log1p variance stabilization |
+| **Known Attack F1-Score (Exp A)** | **0.9997** [0.9996, 0.9998] | **0.4099** [0.4060, 0.4139] | $\Delta F1 = 0.5898$ ($p < 0.001$, Significant: True) |
+| **Known Attack Recall (Exp A)** | **99.99%** | **25.89%** | Enforced under 1.0% benign false-alarm constraint |
+| **Known Attack FPR (Exp A)** | **0.09%** | **0.93%** | Strictly complies with <1.0% operational ceiling |
+| **Held-Out (Zero-Day) Recall (Exp B)**| **62.50%** [0.6229, 0.6277] | **16.60%** [0.1638, 0.1677] | $\Delta Recall = 0.4591$ ($p < 0.001$, Significant: True) |
+| **Infiltration Attack Recall (Exp B)**| 0.00% | **47.22%** | **VAE detects stealth attacks completely missed by XGBoost** |
+| **Inference Latency** | **0.00049 ms/sample** | 0.00522 ms/sample | XGBoost is ~10.6x faster on CPU |
 
 ---
 
