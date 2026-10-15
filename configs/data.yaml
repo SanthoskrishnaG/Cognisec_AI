@@ -1,0 +1,58 @@
+# Data configuration for CICIDS2017 pipeline
+dataset_name: "CICIDS2017"
+raw_data_dir: "data/raw"
+processed_data_dir: "data/processed"
+manifest_path: "data/processed/partition_manifest.json"
+
+# Leakage columns to drop unconditionally (identities, timestamps, metadata)
+leakage_columns:
+  - "Flow ID"
+  - "Source IP"
+  - "Destination IP"
+  - "Timestamp"
+  - "External IP"
+
+# Label configurations
+label_column: "Label"
+binary_target_column: "Target" # 0 = Benign, 1 = Attack
+benign_label: "BENIGN"
+
+# Attack family mapping to high-level groups
+attack_family_mapping:
+  "BENIGN": "BENIGN"
+  "DDoS": "DDoS"
+  "PortScan": "PortScan"
+  "Bot": "Bot"
+  "Infiltration": "Infiltration"
+  "Web Attack  Brute Force": "Web_Attack"
+  "Web Attack  XSS": "Web_Attack"
+  "Web Attack  Sql Injection": "Web_Attack"
+  "Web Attack - Brute Force": "Web_Attack"
+  "Web Attack - XSS": "Web_Attack"
+  "Web Attack - Sql Injection": "Web_Attack"
+  "FTP-Patator": "Brute_Force"
+  "SSH-Patator": "Brute_Force"
+  "DoS slowloris": "DoS"
+  "DoS Slowhttptest": "DoS"
+  "DoS Hulk": "DoS"
+  "DoS GoldenEye": "DoS"
+  "Heartbleed": "Heartbleed"
+
+# Partition specification
+train_ratio: 0.60
+val_ratio: 0.20
+test_ratio: 0.20
+random_seed: 42
+
+# Training known attack families (used in Experiment A and default training)
+known_attack_families:
+  - "DoS"
+  - "PortScan"
+  - "Brute_Force"
+
+# Candidate held-out attack families for Experiment B
+held_out_attack_families:
+  - "DDoS"
+  - "Web_Attack"
+  - "Bot"
+  - "Infiltration"

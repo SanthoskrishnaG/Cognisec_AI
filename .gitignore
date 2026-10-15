@@ -1,0 +1,52 @@
+# Python virtual environment
+.venv/
+venv/
+ENV/
+env/
+
+# Python cache and build
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Data directories (do not commit raw multi-GB CSVs or extracts)
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+data/interim/*
+!data/interim/.gitkeep
+
+# Model checkpoints and large binaries
+artifacts/models/*.pt
+artifacts/models/*.json
+artifacts/models/*.pkl
+artifacts/models/*.joblib
+!artifacts/models/.gitkeep
+
+# Results and logs
+results/cache/
+*.log
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

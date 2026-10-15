@@ -1,0 +1,47 @@
+# Master Experiment Suite Configuration
+random_seed: 42
+results_dir: "results"
+figures_dir: "reports/figures"
+tables_dir: "reports/tables"
+
+# Experiments to execute
+experiments:
+  experiment_a:
+    name: "Known Attack Detection Benchmark"
+    enabled: true
+    description: "Evaluate XGBoost and VAE on held-out test data containing benign traffic and attack families represented in training."
+  
+  experiment_b:
+    name: "Held-Out Attack-Family Generalisation"
+    enabled: true
+    description: "Evaluate both models on attack families withheld completely from training and hyperparameter selection."
+    held_out_families:
+      - "DDoS"
+      - "Web_Attack"
+      - "Bot"
+      - "Infiltration"
+
+  experiment_c:
+    name: "False-Alarm & Threshold Sensitivity Analysis"
+    enabled: true
+    description: "Vary benign validation false-alarm rates (e.g. 0.1%, 0.5%, 1%, 2%, 5%) and examine precision-recall trade-offs."
+    fpr_sweep: [0.1, 0.5, 1.0, 2.0, 5.0, 10.0]
+
+  experiment_d:
+    name: "Distribution-Shift Stress Testing"
+    enabled: true
+    description: "Evaluate model degradation under synthetic feature perturbations (flow duration, packet size scaling, noise injection)."
+    perturbations:
+      - type: "packet_size_scale"
+        factors: [0.5, 1.5, 2.0]
+      - type: "flow_duration_noise"
+        noise_stds: [0.1, 0.3, 0.5]
+
+  experiment_f:
+    name: "Complementarity & Disagreement Analysis"
+    enabled: true
+    description: "Analyze cross-tabulated detections between XGBoost and VAE on unseen attack instances."
+
+statistical_validation:
+  bootstrap_replicates: 500
+  confidence_level: 0.95

@@ -1,0 +1,54 @@
+{
+    "Friday-WorkingHours-Afternoon-PortScan.csv": {
+        "file_size_mb": 49.79,
+        "status": "cached"
+    },
+    "Friday-WorkingHours-Afternoon-DDos.csv": {
+        "file_size_mb": 54.41,
+        "status": "cached"
+    },
+    "Friday-WorkingHours-Morning.csv": {
+        "file_size_mb": 8.6,
+        "status": "cached"
+    },
+    "Monday-WorkingHours.csv": {
+        "total_records": 25000,
+        "benign_records": 25000,
+        "attack_records": 0,
+        "attacks_preserved_percentage": 100.0,
+        "seconds_to_acquire": 103.57,
+        "file_size_mb": 8.61
+    },
+    "Tuesday-WorkingHours.csv": {
+        "total_records": 38835,
+        "benign_records": 25000,
+        "attack_records": 13835,
+        "attacks_preserved_percentage": 100.0,
+        "seconds_to_acquire": 28.72,
+        "file_size_mb": 12.62
+    },
+    "Wednesday-workingHours.csv": {
+        "total_records": 277672,
+        "benign_records": 25000,
+        "attack_records": 252672,
+        "attacks_preserved_percentage": 100.0,
+        "seconds_to_acquire": 30.0,
+        "file_size_mb": 100.42
+    },
+    "Thursday-WorkingHours-Morning-WebAttacks.csv": {
+        "total_records": 27180,
+        "benign_records": 25000,
+        "attack_records": 2180,
+        "attacks_preserved_percentage": 100.0,
+        "seconds_to_acquire": 7.37,
+        "file_size_mb": 8.67
+    },
+    "Thursday-WorkingHours-Afternoon-Infilteration.csv": {
+        "total_records": 25036,
+        "benign_records": 25000,
+        "attack_records": 36,
+        "attacks_preserved_percentage": 100.0,
+        "seconds_to_acquire": 14.15,
+        "file_size_mb": 7.61
+    }
+}
