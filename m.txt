@@ -1,0 +1,861 @@
+# MASTER PROMPT: Network Behaviour Fingerprinting for Unseen Cyberattack Detection
+
+## 1. PROJECT IDENTITY
+
+**Project Title:** Network Behaviour Fingerprinting for Unseen Attack Detection: An Experimental Comparison of XGBoost and Variational Autoencoders
+
+**Academic Level:** Advanced MSc Data Science
+
+**Project Domain:** Cybersecurity, Machine Learning, Deep Learning, Anomaly Detection, Statistical Evaluation
+
+**Primary Dataset:** CICIDS2017
+
+**Implementation Environment:** Python, Google Colab, Pandas, NumPy, scikit-learn, XGBoost, PyTorch, Matplotlib, SciPy
+
+**Project Type:** Research-oriented machine learning and deep learning project
+
+### Core Objective
+
+Design, implement, and evaluate a reproducible network intrusion detection framework that compares exactly two predictive models:
+
+1. **XGBoost:** A supervised traditional machine learning classifier trained on labelled network-flow records.
+2. **Variational Autoencoder (VAE):** A deep learning model trained primarily on benign network traffic to learn normal traffic representations and generate anomaly scores.
+
+The research must investigate known-attack detection, held-out attack-family detection, false-positive behaviour, and generalisation under distribution shift.
+
+The central research question is:
+
+"How effectively can supervised classification and normal-behaviour modelling detect known and held-out cyberattack families, and how do their detection capabilities, false-alarm rates, and generalisation characteristics differ?"
+
+Do not assume that either model is superior. The final conclusions must follow from actual experiments.
+
+---
+
+# 2. NON-NEGOTIABLE PROJECT CONSTRAINTS
+
+These constraints apply to the entire implementation.
+
+### 2.1 Exactly Two Predictive Models
+
+The project must contain exactly:
+
+- One traditional ML model: XGBoost.
+- One deep learning model: Variational Autoencoder implemented in PyTorch.
+
+Do not introduce Random Forest, Logistic Regression, SVM, LightGBM, CatBoost, an additional neural network, an ensemble, or another predictive model.
+
+Preprocessing, statistical tests, threshold selection, evaluation utilities, and post-hoc calibration are not additional predictive models.
+
+Do not replace either selected model with a different algorithm.
+
+### 2.2 Research Integrity
+
+- Never fabricate experimental results.
+- Never invent metric values, dataset statistics, citations, or performance claims.
+- Never report a model as trained unless training actually completed.
+- Never claim that the system detects all zero-day attacks.
+- Clearly distinguish observed findings from hypotheses.
+- Keep all test data isolated from training and model-selection decisions.
+- Record failed experiments and implementation limitations honestly.
+
+### 2.3 Dataset Constraints
+
+Use CICIDS2017 as the primary dataset.
+
+Prefer its extracted machine-learning CSV files containing network-flow features rather than raw packet captures.
+
+The dataset should be accessed through Google Colab where practical. Avoid requiring the user to download the complete dataset to their personal computer.
+
+Do not assume that an external dataset URL supports direct streaming. Verify access, inspect available files, and handle failed downloads gracefully.
+
+Use only the files and attack families required for the current experiment. Avoid loading the entire dataset into memory unnecessarily.
+
+### 2.4 Implementation Quality
+
+- Use modular, maintainable Python code.
+- Prefer clear functions and classes over a single enormous notebook cell.
+- Use type hints where practical.
+- Add meaningful error handling and validation.
+- Keep configuration separate from implementation.
+- Make experiments reproducible.
+- Avoid unnecessary abstractions and excessive dependencies.
+- Do not use synthetic results as substitutes for missing real experiments.
+- Do not implement unrelated cybersecurity functionality.
+
+### 2.5 Scope Boundary
+
+This is a defensive network traffic analysis project.
+
+The system analyses existing flow records. It must not perform network scanning, packet injection, exploitation, credential collection, or unauthorised monitoring.
+
+A live traffic capture module is not required for the core research.
+
+---
+
+# PHASE 1 — RESEARCH DESIGN, DATASET INVESTIGATION, AND EXPERIMENTAL FOUNDATIONS
+
+Treat this phase as a complete research-design and data-engineering work package.
+
+## 1.1 Define the research methodology
+
+Develop a formal research specification covering:
+
+- Research problem.
+- Motivation.
+- Research question.
+- Objectives.
+- Testable hypotheses.
+- Independent and dependent variables.
+- Experimental conditions.
+- Evaluation criteria.
+- Reproducibility requirements.
+- Limitations and threats to validity.
+
+Define the primary comparison as supervised classification versus benign-only anomaly modelling.
+
+The central contribution should be a rigorous experimental investigation, not a claim that combining two existing algorithms constitutes a novel algorithm.
+
+## 1.2 Investigate CICIDS2017
+
+Identify the available dataset files, their schemas, feature definitions, label columns, and relevant attack families.
+
+Produce a dataset inventory containing:
+
+- File name.
+- File size, where available.
+- Number of records.
+- Number of columns.
+- Column data types.
+- Target-label distribution.
+- Missing-value counts.
+- Infinite-value counts.
+- Duplicate-record counts.
+- Available attack families.
+- Suspected identifier and leakage columns.
+
+Verify all counts directly from the files.
+
+Do not hardcode expected row counts as if they were observed results.
+
+If the dataset is accessed through a mirror, document the source and acknowledge that it is a mirror rather than the official publisher.
+
+## 1.3 Build a robust ingestion pipeline
+
+Implement a reusable dataset loader that:
+
+- Reads CSV files incrementally when appropriate.
+- Handles inconsistent whitespace in column names.
+- Detects duplicated column names.
+- Validates required feature columns.
+- Preserves original labels for experimental analysis.
+- Standardises label strings without accidentally merging distinct classes.
+- Handles malformed files and inaccessible sources.
+- Records source-file provenance.
+- Produces a machine-readable ingestion report.
+
+Never silently discard large numbers of records.
+
+Every exclusion must be documented with a reason and a record count.
+
+## 1.4 Establish a feature and leakage audit
+
+Identify features that could reveal the target directly or indirectly.
+
+Investigate:
+
+- Attack labels and label-derived columns.
+- Flow identifiers.
+- Source and destination addresses.
+- Ports and protocol fields.
+- Capture-specific timestamps.
+- Duplicated records across files.
+- Duplicate flows across partitions.
+- Features that are constant or nearly constant.
+- Features that may encode collection conditions rather than attack behaviour.
+
+Do not automatically remove every contextual feature. Document the rationale for each inclusion or exclusion.
+
+Create a feature audit table with the columns:
+
+Feature, Data Type, Description, Missingness, Leakage Risk, Retained, Reason.
+
+Keep the raw dataset separate from transformed data.
+
+## 1.5 Define leakage-controlled data partitions
+
+Design training, validation, and test partitions before fitting any preprocessing transformations.
+
+Where dataset metadata permits, use capture-aware or time-aware partitions to reduce contamination from correlated traffic.
+
+Document when a truly chronological or independent-capture split is not possible.
+
+Check for exact duplicate records and near-duplicate risks across partitions.
+
+Avoid random row-level splits as the only evidence of generalisation.
+
+The partition specification must explicitly identify:
+
+- Training data.
+- Validation data.
+- Final test data.
+- Attack families permitted in supervised training.
+- Attack families reserved for held-out evaluation.
+- Benign records used for VAE training.
+- Benign validation records used for anomaly-threshold selection.
+
+Create a machine-readable experiment manifest containing partition identifiers and label-distribution summaries.
+
+## 1.6 Preprocessing design
+
+Create a shared preprocessing interface while allowing each model to receive an appropriate numerical representation.
+
+Requirements:
+
+- Handle missing and infinite numerical values.
+- Handle skewed feature distributions where justified.
+- Apply appropriate feature scaling for the VAE.
+- Fit every learned transformation exclusively on permitted training data.
+- Apply the fitted transformations unchanged to validation and test data.
+- Avoid target-derived transformations.
+- Keep feature order consistent across training and inference.
+- Save fitted preprocessing objects and the final feature schema.
+
+Do not blindly apply the same scaling strategy to both algorithms if their requirements differ.
+
+### Phase 1 deliverables
+
+- Research specification.
+- Dataset inventory.
+- Data ingestion module.
+- Feature and leakage audit.
+- Data-quality report.
+- Partition manifest.
+- Preprocessing pipeline.
+- Reproducibility configuration.
+- Written justification for all major methodological decisions.
+
+Do not proceed with model training until the dataset and partition definitions have been validated.
+
+---
+
+# PHASE 2 — COMPLETE MODEL IMPLEMENTATION AND TRAINING PIPELINES
+
+This phase must produce two working, independently testable predictive models.
+
+## 2.1 Implement XGBoost
+
+Implement a supervised binary classifier using XGBoost.
+
+The training data should contain benign records and the attack families permitted by the experiment design.
+
+Map the binary target consistently:
+
+- 0 = Benign.
+- 1 = Attack.
+
+Preserve original attack-family labels separately for evaluation.
+
+### Requirements
+
+- Support imbalanced class distributions.
+- Use a documented hyperparameter search space.
+- Select hyperparameters using training and validation data only.
+- Use validation-based threshold selection.
+- Save the fitted model and its configuration.
+- Save prediction probabilities rather than only class labels.
+- Record training duration and inference duration.
+- Record the feature schema used by the trained model.
+- Ensure reproducibility through controlled random seeds.
+
+Investigate class weighting or other appropriate imbalance handling, but never rebalance the final test data artificially.
+
+Do not choose hyperparameters using final test performance.
+
+## 2.2 Implement the Variational Autoencoder
+
+Implement the VAE using PyTorch.
+
+Use a configurable encoder-decoder architecture suitable for tabular network-flow data.
+
+### Encoder
+
+The encoder maps the input feature vector into:
+
+- Latent mean vector.
+- Latent log-variance vector.
+
+### Latent sampling
+
+Implement the reparameterisation trick so the model can be trained using gradient-based optimisation.
+
+### Decoder
+
+The decoder reconstructs the input feature vector from a sampled latent representation.
+
+### Training objective
+
+Use a configurable objective:
+
+L = Reconstruction Loss + beta × KL Divergence.
+
+The reconstruction loss must be appropriate for the chosen feature representation.
+
+For continuous numerical features, a documented squared-error or probabilistic reconstruction objective may be used.
+
+For a mixed feature representation, choose a justified likelihood or loss formulation rather than assuming every column is Gaussian.
+
+The KL-divergence term must be computed correctly and its scaling must be documented.
+
+### Training requirements
+
+- Train primarily on benign training records only.
+- Never use attack labels to train the normal-behaviour representation.
+- Use benign validation data for early stopping and model selection.
+- Save training and validation loss histories.
+- Support CPU execution and CUDA when available.
+- Use mini-batches and configurable batch sizes.
+- Avoid loading unnecessarily large arrays onto the GPU.
+- Detect numerical instability, NaN losses, and invalid outputs.
+- Save the best validation checkpoint.
+- Record architecture and training hyperparameters.
+
+### Anomaly-score definition
+
+Implement a documented anomaly-scoring function.
+
+A reconstruction-based score may use the mean or sum of feature-wise reconstruction errors. If feature weighting is used, justify and document it.
+
+Investigate whether stochastic latent sampling affects score stability. Use a consistent scoring procedure for all evaluated records.
+
+Do not describe a raw anomaly score as a calibrated attack probability.
+
+## 2.3 Threshold selection
+
+Define the VAE threshold using benign validation records only.
+
+Support a configurable false-alarm tolerance, such as a predeclared percentile of the benign validation anomaly-score distribution.
+
+The threshold must be fixed before final test evaluation.
+
+Do not select the threshold by inspecting held-out attack labels.
+
+Report the actual validation false-positive rate and the test false-positive rate separately.
+
+## 2.4 Model validation and unit tests
+
+Create tests for:
+
+- Correct target encoding.
+- Correct feature ordering.
+- Consistent preprocessing.
+- Expected model input dimensions.
+- Finite model outputs.
+- Successful forward and backward passes for the VAE.
+- Correct anomaly-score computation.
+- Correct threshold application.
+- Successful save and reload of both models.
+- Reproducible predictions under the documented inference configuration.
+
+### Phase 2 deliverables
+
+- XGBoost training module.
+- PyTorch VAE training module.
+- Shared preprocessing interfaces.
+- Configuration files.
+- Model checkpoints.
+- Validation logs.
+- Anomaly-scoring module.
+- Threshold-selection module.
+- Unit tests.
+- Reproducible model-training instructions.
+
+---
+
+# PHASE 3 — CONTROLLED RESEARCH EXPERIMENTS AND GENERALISATION ANALYSIS
+
+This phase implements the actual research contribution.
+
+All experiments must use the partition manifest established in Phase 1.
+
+## 3.1 Experiment A: Known-attack detection
+
+Evaluate both models on held-out benign records and attack families represented in supervised training.
+
+Report:
+
+- Average Precision.
+- PR-AUC curves or equivalent precision-recall analysis.
+- ROC-AUC.
+- Precision.
+- Recall.
+- F1-score.
+- False-positive rate.
+- Confusion matrix.
+- Inference latency.
+
+Use the same evaluation records for both models wherever the comparison is methodologically valid.
+
+State clearly that the VAE uses anomaly scores rather than supervised attack probabilities.
+
+## 3.2 Experiment B: Held-out attack-family detection
+
+Create one or more explicit held-out attack-family experiments.
+
+For each experiment:
+
+1. Exclude selected attack families from XGBoost training.
+2. Ensure their records are not used in supervised validation or hyperparameter selection.
+3. Train the VAE only on permitted benign training data.
+4. Choose the anomaly threshold using benign validation data.
+5. Evaluate both models on a test set containing benign traffic and the held-out attack families.
+6. Report results separately for each held-out family.
+
+The held-out family must not leak into model selection through attack labels, threshold tuning, feature selection, or manual adjustment.
+
+Document whether capture conditions and time periods are shared between training and testing. A held-out label does not automatically establish independent real-world generalisation.
+
+For XGBoost, evaluate whether the supervised classifier identifies the held-out attack records despite not being trained on that attack family.
+
+For the VAE, evaluate whether the held-out attack records receive higher anomaly scores than benign records.
+
+Do not assume that an unseen attack must have a high anomaly score.
+
+## 3.3 Experiment C: False-alarm and threshold sensitivity
+
+Evaluate the effect of different predeclared benign validation false-alarm tolerances.
+
+For every operating point, report:
+
+- Validation false-positive rate.
+- Test false-positive rate.
+- Attack recall.
+- Precision.
+- F1-score.
+- Number of false alerts.
+- Number of detected attacks.
+
+Plot detection performance against false-positive rate.
+
+Explain the operational implications of the trade-off.
+
+Do not choose the most favourable threshold after observing the final test results.
+
+## 3.4 Experiment D: Distribution-shift stress testing
+
+Investigate how each model responds when the evaluation distribution differs from the training distribution.
+
+Potential stress conditions include:
+
+- Controlled changes to selected continuous features.
+- Changes in traffic intensity.
+- Changes in packet-size distributions.
+- Changes in flow-duration distributions.
+- Capture-period shifts.
+- Differences in traffic composition.
+
+Clearly separate synthetic perturbations from naturally occurring shifts.
+
+Define each perturbation, its severity, affected features, and justification before running the final evaluation.
+
+Do not create artificial attack labels merely because a feature value was perturbed.
+
+Investigate whether preprocessing itself amplifies or suppresses the observed shifts.
+
+## 3.5 Experiment E: Cross-dataset generalisation
+
+Where feasible, evaluate the trained models using a compatible subset of CICIDS2018.
+
+Before proceeding:
+
+- Verify feature definitions and units.
+- Align feature names and order.
+- Identify unavailable or incompatible fields.
+- Apply only transformations learned from the permitted training data.
+- Document differences in collection conditions.
+- Avoid fitting a new transformation using target-dataset statistics if that would violate the declared protocol.
+
+Treat this as a separate generalisation experiment.
+
+Do not compare raw scores across datasets without considering differences in prevalence, traffic composition, and feature distributions.
+
+## 3.6 Experiment F: Complementarity analysis
+
+Investigate records for which XGBoost and the VAE disagree.
+
+Analyse:
+
+- Attacks detected by both.
+- Attacks detected only by XGBoost.
+- Attacks detected only by the VAE.
+- Attacks missed by both.
+- Benign records incorrectly flagged by either approach.
+
+Create a disagreement analysis using held-out records and fixed thresholds.
+
+This is an analysis of the two existing models, not permission to build an ensemble.
+
+### Phase 3 deliverables
+
+- Experiment configuration files.
+- Known-attack benchmark results.
+- Held-out attack-family results.
+- Threshold-sensitivity results.
+- Distribution-shift results.
+- Optional cross-dataset evaluation.
+- Model disagreement analysis.
+- Prediction-level evaluation files.
+- Reproducible experiment logs.
+
+---
+
+# PHASE 4 — STATISTICAL VALIDATION, INTERPRETABILITY, AND SCIENTIFIC REPORTING
+
+This phase determines whether the results support defensible conclusions.
+
+## 4.1 Statistical uncertainty
+
+Use repeated training runs with multiple random seeds where appropriate.
+
+For key metrics, calculate confidence intervals.
+
+Use paired bootstrap comparisons when comparing predictions from the same held-out records.
+
+Document:
+
+- The unit of resampling.
+- The number of bootstrap replicates.
+- The confidence-interval method.
+- Any grouping required to account for correlated flows.
+
+Where records are strongly correlated within capture periods, avoid treating every row as an independent observation without justification.
+
+Do not claim statistical significance solely because one observed metric is larger than another.
+
+## 4.2 Evaluation metrics
+
+Use a consistent metric-definition module.
+
+### Classification metrics
+
+- Average Precision.
+- ROC-AUC.
+- Precision.
+- Recall.
+- F1-score.
+- Confusion matrix.
+- False-positive rate.
+- False-negative rate.
+
+### Anomaly-detection metrics
+
+- Anomaly-score distributions for benign and attack traffic.
+- Recall at predefined benign false-alarm tolerances.
+- Precision-recall analysis using anomaly scores.
+- Per-attack-family detection rates.
+- Threshold sensitivity.
+
+### Computational metrics
+
+- Training duration.
+- Inference latency.
+- Throughput.
+- Peak memory consumption where measurable.
+- Model artifact size.
+
+Document the hardware and execution environment for timing comparisons.
+
+### Calibration
+
+XGBoost probabilities and VAE anomaly scores are not inherently equivalent.
+
+Do not compare Brier scores or expected calibration errors on these raw outputs as though both were attack probabilities.
+
+If probability calibration is investigated, define a validation-only calibration procedure, fit it without test labels, and report calibration results separately from raw anomaly-detection performance.
+
+## 4.3 Feature importance and interpretability
+
+For XGBoost, use feature importance and, where practical, SHAP to investigate which features influence predictions.
+
+For the VAE, investigate:
+
+- Feature-wise reconstruction errors.
+- Features contributing most to selected anomaly scores.
+- Score differences between benign and attack groups.
+- Examples of false positives and false negatives.
+
+Avoid claiming that feature attribution establishes causation.
+
+Explain that a feature with high reconstruction error is not necessarily the cause of an attack.
+
+Interpretability tools must not alter the held-out test protocol.
+
+## 4.4 Scientific visualisation
+
+Generate publication-quality figures with clear titles, axis labels, legends, and captions.
+
+Required figures include:
+
+- Dataset class distribution.
+- Attack-family distribution.
+- Missingness and data-quality summary.
+- Precision-recall curves.
+- ROC curves.
+- Confusion matrices.
+- VAE training and validation loss.
+- Benign versus attack anomaly-score distributions.
+- Recall versus false-positive rate.
+- Per-attack-family detection performance.
+- Distribution-shift degradation.
+- Confidence intervals for key comparisons.
+- Model inference-latency comparison.
+- Model disagreement analysis.
+
+Every chart must be generated from actual experiment outputs.
+
+Do not draw illustrative values and present them as experimental findings.
+
+## 4.5 Research hypotheses and interpretation
+
+Evaluate the following hypotheses:
+
+H1: XGBoost performs effectively on attack families represented in its supervised training data.
+
+H2: The VAE can identify at least some held-out attack records at a controlled benign false-alarm rate.
+
+H3: The VAE identifies some held-out attacks missed by XGBoost.
+
+H4: Detection performance varies across attack families and evaluation conditions.
+
+H5: Distribution shift affects the two models differently.
+
+Each hypothesis must be evaluated independently.
+
+A hypothesis may be unsupported or contradicted by the results. That is acceptable and must be reported honestly.
+
+## 4.6 Threats to validity
+
+Discuss:
+
+- Dataset age and representativeness.
+- Capture-specific correlations.
+- Duplicate records.
+- Class imbalance.
+- Label quality.
+- Feature leakage.
+- Dependence on the chosen anomaly threshold.
+- Differences between synthetic and real distribution shift.
+- Limited evidence for generalisation to genuinely novel attacks.
+- Hardware-dependent runtime measurements.
+
+### Phase 4 deliverables
+
+- Statistical analysis scripts.
+- Confidence intervals.
+- Metric comparison tables.
+- Interpretability results.
+- Publication-quality visualisations.
+- Hypothesis assessment.
+- Limitations and threats-to-validity analysis.
+- A scientific interpretation of all major findings.
+
+---
+
+# PHASE 5 — REPRODUCIBLE RESEARCH PACKAGE AND FINAL PROJECT DOCUMENTATION
+
+This phase packages the implementation as a complete academic research project.
+
+## 5.1 Project structure
+
+Organise the implementation into a maintainable structure similar to:
+
+network-behaviour-fingerprinting/
+├── README.md
+├── requirements.txt
+├── configs/
+│   ├── data.yaml
+│   ├── xgboost.yaml
+│   ├── vae.yaml
+│   └── experiments.yaml
+├── notebooks/
+│   ├── data_audit.ipynb
+│   └── results_analysis.ipynb
+├── src/
+│   ├── data/
+│   │   ├── ingestion.py
+│   │   ├── validation.py
+│   │   ├── preprocessing.py
+│   │   └── splitting.py
+│   ├── models/
+│   │   ├── xgboost_model.py
+│   │   └── vae_model.py
+│   ├── training/
+│   │   ├── train_xgboost.py
+│   │   └── train_vae.py
+│   ├── evaluation/
+│   │   ├── metrics.py
+│   │   ├── thresholds.py
+│   │   ├── robustness.py
+│   │   └── statistics.py
+│   ├── analysis/
+│   │   ├── interpretability.py
+│   │   └── visualisation.py
+│   └── utils/
+│       ├── configuration.py
+│       └── reproducibility.py
+├── tests/
+├── reports/
+│   ├── figures/
+│   └── tables/
+├── artifacts/
+└── results/
+
+Adapt this structure when necessary. Do not create empty files merely to match a directory tree.
+
+Keep large datasets, temporary files, and generated checkpoints out of source control unless there is a clear reason to include them.
+
+## 5.2 Reproducibility requirements
+
+Provide instructions for reproducing:
+
+- Dataset acquisition or access.
+- Data validation.
+- Partition creation.
+- Model training.
+- Threshold selection.
+- Evaluation.
+- Statistical analysis.
+- Figure generation.
+
+Record dependency versions, random seeds, model configurations, feature schemas, partition identifiers, and dataset provenance.
+
+Use a single configuration-driven interface where practical.
+
+Provide both Google Colab instructions and a local Python execution path where feasible.
+
+The local workflow must not require the full dataset to be stored permanently on the user's computer.
+
+## 5.3 Model and artifact management
+
+Save the XGBoost model, VAE checkpoint, fitted preprocessing objects, anomaly threshold, feature schema, and model configurations.
+
+Do not load arbitrary untrusted model artifacts.
+
+Prefer explicit, documented artifact formats and safe loading practices.
+
+Validate feature order and preprocessing compatibility before inference.
+
+Do not commit secrets, credentials, private traffic captures, or unnecessary large files.
+
+## 5.4 Academic report
+
+Produce a complete dissertation-style report with the following sections:
+
+1. Abstract.
+2. Introduction.
+3. Problem statement.
+4. Research aim and objectives.
+5. Literature review.
+6. Research gap and motivation.
+7. Dataset description.
+8. Data preprocessing and leakage prevention.
+9. Methodology.
+10. XGBoost implementation.
+11. VAE architecture and training.
+12. Experimental design.
+13. Evaluation metrics.
+14. Results.
+15. Statistical analysis.
+16. Interpretability and error analysis.
+17. Discussion.
+18. Limitations and threats to validity.
+19. Ethical considerations.
+20. Conclusion and future work.
+21. References.
+22. Appendices containing configurations and supplementary results.
+
+Use genuine, verifiable references. Clearly distinguish literature-derived claims from findings generated by this project.
+
+Do not invent a research gap without reviewing relevant prior work.
+
+Do not write a results section containing hypothetical numbers as if experiments had already been performed.
+
+## 5.5 Final presentation
+
+Prepare a clear technical presentation covering:
+
+- Motivation and research question.
+- Dataset and data-quality challenges.
+- Why the two models differ conceptually.
+- Experimental design.
+- Leakage prevention.
+- Known-attack results.
+- Held-out attack-family results.
+- False-alarm analysis.
+- Distribution-shift experiments.
+- Statistical uncertainty.
+- Limitations.
+- Final conclusions.
+
+Use actual results generated by the implementation.
+
+### Phase 5 deliverables
+
+- Complete source code.
+- Reproducible experiment configurations.
+- Unit tests.
+- Trained model artifacts.
+- Dataset and partition documentation.
+- Evaluation results and visualisations.
+- Final dissertation-style report.
+- Technical presentation.
+- Reproduction instructions.
+
+---
+
+# 3. REQUIRED FINAL OUTPUTS
+
+The completed project must provide the following evidence of successful implementation:
+
+1. A verified dataset-ingestion and preprocessing pipeline.
+2. A documented, leakage-controlled experiment manifest.
+3. One trained XGBoost classifier.
+4. One trained PyTorch Variational Autoencoder.
+5. A validated anomaly-scoring and threshold-selection implementation.
+6. Results for known attacks and held-out attack families.
+7. False-alarm and distribution-shift analyses.
+8. Statistical uncertainty estimates for key comparisons.
+9. A reproducible evaluation and visualisation pipeline.
+10. A complete academic report with evidence-based conclusions.
+
+Do not mark an output as complete merely because its source file exists. Verify that the relevant functionality works.
+
+# 4. IMPLEMENTATION EXECUTION RULES
+
+Follow these rules throughout development:
+
+- Begin by inspecting the environment and verifying the available dataset-access methods.
+- Build the project in dependency order.
+- Complete and validate each phase before treating its outputs as established.
+- Keep implementation code separate from research findings.
+- Run tests after modifying shared components.
+- Inspect real data before finalising assumptions about schemas or class distributions.
+- Avoid unnecessary downloads and large in-memory copies.
+- Use GPU acceleration for PyTorch when available, with a working CPU fallback.
+- Report errors explicitly rather than silently skipping failed experiments.
+- Keep a record of configuration changes and experiment outcomes.
+- Never fabricate successful test results.
+- Never modify the final test protocol to improve reported performance after seeing test outcomes.
+- Never introduce a third predictive model to improve benchmark scores.
+- Never claim production readiness from offline benchmark evaluation alone.
+
+# 5. DEFINITION OF SUCCESS
+
+The project is complete when the two models can be trained and evaluated reproducibly, the held-out attack-family experiments are implemented without label leakage, the statistical analyses are generated from actual predictions, and the final report accurately explains both successful and unsuccessful findings.
+
+The primary measure of success is the quality and validity of the research, not a predetermined accuracy target.
+
+The final answer to the research question must be based on the evidence produced by the experiments.
+
+Start with Phase 1. Inspect the available execution environment and dataset-access options, then implement the research foundations before proceeding to model training. Do not skip directly to generating a final report or inventing experimental results.
+
+**FULL AUTONOMY REQUIREMENT:** Execute the entire project independently from Phase 1 through Phase 5 without disturbing me, asking for routine confirmations, or waiting for approval between phases. Make reasonable technical and research decisions autonomously, resolve errors, install necessary dependencies where permitted, implement all components, run tests, debug failures, and continue until the complete project is finished. Do not stop after creating a plan, generating boilerplate, or completing only one phase. Do not ask me to execute commands or perform manual steps when you can perform them yourself. If a tool, permission, resource limit, or genuine external blocker prevents progress, document the exact blocker, exhaust reasonable alternatives, complete all remaining independent work, and clearly identify anything that genuinely requires my intervention. Never fabricate results or claim an operation succeeded when it did not. Prioritise correctness, reproducibility, research integrity, and completion over speed. Work autonomously and deliver the complete, verified project with its source code, trained model artifacts where feasible, experimental results, documentation, and final academic report.
