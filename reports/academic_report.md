@@ -192,14 +192,16 @@ Conversely, VAE reconstruction error decomposition showed that benign traffic ex
 ---
 
 ## 17. Discussion
-The empirical results challenge the widespread cybersecurity assumption that benign anomaly detectors are inherently superior for zero-day attack detection. While the VAE functions as advertised—detecting statistical deviations without attack signatures—its real-world sensitivity is constrained by the necessity of suppressing false alarms. In high-throughput networks generating millions of flows daily, a 1% false alarm rate represents thousands of spurious alerts per hour. When calibrated to this operational constraint, the VAE misses subtle attacks. Crucially, however, the VAE demonstrated superior sensitivity to `Infiltration` attacks (16.67% vs 0.00%), establishing that anomaly detection provides vital defense-in-depth for low-footprint threats that evade supervised classifiers.
+The empirical results challenge the widespread cybersecurity assumption that benign anomaly detectors are inherently superior for zero-day attack detection. While the VAE functions as advertised—detecting statistical deviations without attack signatures—its real-world sensitivity is constrained by the necessity of suppressing false alarms. In high-throughput networks generating millions of flows daily, a 1% false alarm rate represents thousands of spurious alerts per hour. When calibrated to this operational constraint, the VAE misses subtle attacks. Crucially, however, the VAE demonstrated superior sensitivity to `Infiltration` attacks (**47.22% vs 0.00%**), establishing that anomaly detection provides vital defense-in-depth for low-footprint threats that evade supervised classifiers.
 
 ---
 
 ## 18. Limitations and Threats to Validity
-1. **Dataset Synthetics:** While CICIDS2017 uses authentic traffic, its attack scenarios were executed in an emulated testbed environment that may not reflect contemporary encrypted protocol dynamics (TLS 1.3).
-2. **Tabular Feature Representation:** Aggregating packet streams into bidirectional flow features discards payload and intra-flow packet arrival sequences.
-3. **Hardware Execution:** Latency benchmarks reflect CPU execution; GPU batch inference would alter relative throughput dynamics.
+1. **Identical Feature Vectors Across Partitions for Known Attacks:** A dedicated data integrity audit identified that **14,682 identical feature vectors** cross the training/testing boundary within represented attack classes (2,266 DoS, 1,261 PortScan, 159 Brute Force, and 146 Benign). These arise from repetitive, automated attack probes (such as identical zero-payload TCP SYN sweeps or repeated credential attempts). Consequently, the near-perfect 99.99% recall achieved by XGBoost on known attack families is partly inflated by decision trees memorizing repeated flow signatures. Crucially, **zero identical flows crossed partition boundaries for held-out zero-day families** (`DDoS`, `Web_Attack`, `Bot`, `Infiltration`), preserving the scientific validity of the held-out evaluation.
+2. **Small Infiltration Sample Size:** Authentic `Infiltration` contains only 36 flows in CICIDS2017. While the VAE's 47.22% recall demonstrates sensitivity where XGBoost achieved 0.00%, the confidence interval is wider due to small sample size.
+3. **Dataset Synthetics & Emulated Testbeds:** While CICIDS2017 uses authentic traffic, its attack scenarios were executed in an emulated testbed environment that may not reflect contemporary encrypted protocol dynamics (TLS 1.3).
+4. **Tabular Feature Representation:** Aggregating packet streams into bidirectional flow features discards payload and intra-flow packet arrival sequences.
+5. **Hardware Execution:** Latency benchmarks reflect CPU execution; GPU batch inference would alter relative throughput dynamics.
 
 ---
 
