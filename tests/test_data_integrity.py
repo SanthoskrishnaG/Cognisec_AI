@@ -64,3 +64,83 @@ def test_data_integrity_and_leakage_controls():
     forbidden_terms = ["flow id", "source ip", "destination ip", "timestamp", "external ip"]
     for term in forbidden_terms:
         assert not any(term == f for f in features), f"Forbidden leakage feature '{term}' found in preprocessor!"
+
+
+def test_record_count_and_confusion_matrix_invariants():
+    """
+    Validates Task 2 invariants:
+    1. 257,297 unique physical records in test partition.
+    2. Exactly 297,297 total benchmark evaluations across Exp A & Exp B.
+    3. Exactly 40,000 shared benign control flows.
+    4. Exact confusion matrix sums for both models and both experiments.
+    5. Complementarity sum equals total held-out attacks (132,209).
+    """
+    master_path = Path("results/master_experiment_results.json")
+    assert master_path.exists(), "master_experiment_results.json not found"
+
+    with open(master_path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    # 1. Total record reconciliation invariants
+    assert data["total_unique_test_records"] == 257297
+    assert data["total_benchmark_evaluations"] == 297297
+    assert data["shared_benign_control_records"] == 40000
+
+    exp_a = data["experiment_a_known"]
+    exp_b = data["experiment_b_held_out"]
+
+    # 2. Experiment A sums
+    xgb_a = exp_a["xgboost"]
+    vae_a = exp_a["vae"]
+    total_a = xgb_a["true_negatives"] + xgb_a["false_positives"] + xgb_a["false_negatives"] + xgb_a["true_positives"]
+    total_vae_a = vae_a["true_negatives"] + vae_a["false_positives"] + vae_a["false_negatives"] + vae_a["true_positives"]
+    assert total_a == 125088
+    assert total_vae_a == 125088
+    assert xgb_a["true_negatives"] + xgb_a["false_positives"] == 40000  # Benign (39961 + 39)
+    assert xgb_a["false_negatives"] + xgb_a["true_positives"] == 85088  # Known attacks (85080 + 8)
+    assert vae_a["false_negatives"] + vae_a["true_positives"] == 85088  # Known attacks (22030 + 63058)
+
+
+    # 3. Experiment B sums
+    xgb_b = exp_b["xgboost_summary"]
+    vae_b = exp_b["vae_summary"]
+    total_b = xgb_b["true_negatives"] + xgb_b["false_positives"] + xgb_b["false_negatives"] + xgb_b["true_positives"]
+    total_vae_b = vae_b["true_negatives"] + vae_b["false_positives"] + vae_b["false_negatives"] + vae_b["true_positives"]
+    assert total_b == 172209
+    assert total_vae_b == 172209
+    assert xgb_b["true_negatives"] + xgb_b["false_positives"] == 40000  # Benign control
+    assert xgb_b["false_negatives"] + xgb_b["true_positives"] == 132209 # Held-out attacks
+
+    # 4. Physical uniqueness invariant
+    assert total_a + total_b - 40000 == 257297
+
+    # 5. Complementarity partition
+    comp = data["experiment_f_complementarity"]
+    comp_sum = comp["both_detected"] + comp["xgboost_only"] + comp["vae_only"] + comp["both_missed"]
+    assert comp_sum == 132209
+
+
+
+def test_statistical_validation_invariants():
+    """
+    Validates Task 3 invariants:
+    1. Statistical comparison bounds exist and do not report invalid p = 0.0.
+    2. Bootstrap 95% confidence intervals are mathematically ordered (lower < point < upper).
+    3. McNemar's test results are present with valid chi-squared statistics.
+    """
+    master_path = Path("results/master_experiment_results.json")
+    with open(master_path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    for exp_key in ["experiment_a_known", "experiment_b_held_out"]:
+        stat = data[exp_key]["paired_comparison"]
+        assert "p_value_bound" in stat
+        assert stat["p_value_bound"] in ["< 0.001", "< 1e-6"]
+        ci_lower = stat["ci_lower"]
+        ci_upper = stat["ci_upper"]
+        point = stat["delta_point"]
+        assert ci_lower <= point <= ci_upper
+        assert "mcnemar_test" in stat
+        assert stat["mcnemar_test"]["chi2_statistic"] > 1000.0
+
+

@@ -44,6 +44,8 @@ artifacts/models/*.joblib
 # Results and logs
 results/cache/
 *.log
+*.bak*
+*.bak
 
 # IDE & OS
 .vscode/

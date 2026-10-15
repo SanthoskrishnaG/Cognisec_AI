@@ -275,6 +275,17 @@ button {
   box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.2);
 }
 
+.status-dot.capturing {
+  background-color: var(--status-benign);
+  animation: livePulse 1.8s infinite;
+}
+
+@keyframes livePulse {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(5, 150, 105, 0.7); }
+  70% { transform: scale(1.1); box-shadow: 0 0 0 6px rgba(5, 150, 105, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(5, 150, 105, 0); }
+}
+
 /* --------------------------------------------------------------------------
    Main Content Area
    -------------------------------------------------------------------------- */
@@ -576,6 +587,28 @@ button {
   background-color: var(--bg-secondary);
   color: var(--text-primary);
   border-color: var(--border-subtle);
+}
+
+.btn-danger {
+  background-color: var(--status-attack);
+  color: #ffffff;
+  border: 1px solid var(--status-attack);
+}
+
+.btn-danger:hover {
+  background-color: #b91c1c;
+  border-color: #b91c1c;
+}
+
+.btn-success {
+  background-color: var(--status-benign);
+  color: #ffffff;
+  border: 1px solid var(--status-benign);
+}
+
+.btn-success:hover {
+  background-color: #047857;
+  border-color: #047857;
 }
 
 .btn-outline-blue {

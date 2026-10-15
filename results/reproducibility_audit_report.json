@@ -1,0 +1,166 @@
+{
+    "models": {
+        "original_xgboost": {
+            "name": "Original XGBoost",
+            "known": {
+                "precision": 0.9995418179254926,
+                "recall": 0.9999059796916134,
+                "f1": 0.9997238656459487,
+                "roc_auc": 0.999958526907437,
+                "pr_auc": 0.999978654138082,
+                "fpr": 0.000975
+            },
+            "held_out": {
+                "precision": 0.9995282676536759,
+                "recall": 0.6250330915444485,
+                "f1": 0.769116216731896,
+                "roc_auc": 0.9792480196128857,
+                "pr_auc": 0.9923984345619701,
+                "fpr": 0.000975
+            }
+        },
+        "reproduced_xgboost": {
+            "name": "Reproduced XGBoost",
+            "known": {
+                "precision": 0.9995418179254926,
+                "recall": 0.9999059796916134,
+                "f1": 0.9997238656459487,
+                "roc_auc": 0.999958526907437,
+                "pr_auc": 0.999978654138082,
+                "fpr": 0.000975
+            },
+            "held_out": {
+                "precision": 0.9995282676536759,
+                "recall": 0.6250330915444485,
+                "f1": 0.769116216731896,
+                "roc_auc": 0.9792480196128857,
+                "pr_auc": 0.9923984345619701,
+                "fpr": 0.000975
+            }
+        },
+        "original_vae": {
+            "name": "Original VAE",
+            "known": {
+                "precision": 0.98339433979109,
+                "recall": 0.25890842421963145,
+                "f1": 0.40989859521815986,
+                "roc_auc": 0.9145213474579259,
+                "pr_auc": 0.9431881584859884,
+                "fpr": 0.0093
+            },
+            "held_out": {
+                "precision": 0.9833281046923318,
+                "recall": 0.16595693182763654,
+                "f1": 0.28398545190976043,
+                "roc_auc": 0.9629195223093738,
+                "pr_auc": 0.9801671323172667,
+                "fpr": 0.0093
+            }
+        },
+        "reproduced_vae": {
+            "name": "Reproduced VAE",
+            "known": {
+                "precision": 0.98339433979109,
+                "recall": 0.25890842421963145,
+                "f1": 0.40989859521815986,
+                "roc_auc": 0.9145213474579259,
+                "pr_auc": 0.9431881584859884,
+                "fpr": 0.0093
+            },
+            "held_out": {
+                "precision": 0.9833281046923318,
+                "recall": 0.16595693182763654,
+                "f1": 0.28398545190976043,
+                "roc_auc": 0.9629195223093738,
+                "pr_auc": 0.9801671323172667,
+                "fpr": 0.0093
+            }
+        }
+    },
+    "per_family": [
+        {
+            "family": "Bot",
+            "is_held_out": true,
+            "count": 1966,
+            "xgb_orig_recall": 0.0,
+            "xgb_repro_recall": 0.0,
+            "vae_orig_recall": 0.56,
+            "vae_repro_recall": 0.56
+        },
+        {
+            "family": "Brute_Force",
+            "is_held_out": false,
+            "count": 2774,
+            "xgb_orig_recall": 99.96,
+            "xgb_repro_recall": 99.96,
+            "vae_orig_recall": 0.0,
+            "vae_repro_recall": 0.0
+        },
+        {
+            "family": "DDoS",
+            "is_held_out": true,
+            "count": 128027,
+            "xgb_orig_recall": 63.01,
+            "xgb_repro_recall": 63.01,
+            "vae_orig_recall": 17.12,
+            "vae_repro_recall": 17.12
+        },
+        {
+            "family": "DoS",
+            "is_held_out": false,
+            "count": 50645,
+            "xgb_orig_recall": 99.99,
+            "xgb_repro_recall": 99.99,
+            "vae_orig_recall": 43.43,
+            "vae_repro_recall": 43.43
+        },
+        {
+            "family": "Heartbleed",
+            "is_held_out": false,
+            "count": 3,
+            "xgb_orig_recall": 100.0,
+            "xgb_repro_recall": 100.0,
+            "vae_orig_recall": 100.0,
+            "vae_repro_recall": 100.0
+        },
+        {
+            "family": "Infiltration",
+            "is_held_out": true,
+            "count": 36,
+            "xgb_orig_recall": 0.0,
+            "xgb_repro_recall": 0.0,
+            "vae_orig_recall": 47.22,
+            "vae_repro_recall": 47.22
+        },
+        {
+            "family": "PortScan",
+            "is_held_out": false,
+            "count": 31666,
+            "xgb_orig_recall": 99.99,
+            "xgb_repro_recall": 99.99,
+            "vae_orig_recall": 0.1,
+            "vae_repro_recall": 0.1
+        },
+        {
+            "family": "Web_Attack",
+            "is_held_out": true,
+            "count": 2180,
+            "xgb_orig_recall": 90.23,
+            "xgb_repro_recall": 90.23,
+            "vae_orig_recall": 0.0,
+            "vae_repro_recall": 0.0
+        }
+    ],
+    "latency": {
+        "xgboost": {
+            "sec_per_sample": 4.803895950317383e-07,
+            "ms_per_sample": 0.00048038959503173825,
+            "samples_per_sec": 2081643.7540324582
+        },
+        "vae": {
+            "sec_per_sample": 3.985514640808106e-06,
+            "ms_per_sample": 0.003985514640808106,
+            "samples_per_sec": 250908.6253907825
+        }
+    }
+}

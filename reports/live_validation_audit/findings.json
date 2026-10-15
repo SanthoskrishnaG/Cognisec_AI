@@ -1,0 +1,80 @@
+[
+  {
+    "id": "FIND-01",
+    "category": "Feature Extraction Semantics",
+    "component": "src/live/flow_extractor.py:to_features_dict",
+    "severity": "CRITICAL",
+    "status": "CONFIRMED_DEFECT",
+    "title": "Packet Length Statistics Calculated on Wire Length Instead of Payload Bytes",
+    "description": "CICFlowMeter BasicFlow.java calculates packet length statistics (fwdPktStats, bwdPktStats, flowLengthStats, forwardBytes, backwardBytes) using packet.getPayloadBytes(). Pure control packets (SYN, ACK, FIN) carrying no application payload have length = 0. The live flow_extractor used wire_len = len(pkt) (54 to 66 bytes).",
+    "evidence": "BasicFlow.java lines 137, 151: fwdPktStats.addValue((double)packet.getPayloadBytes()). Sample flows in data/sample_flows.csv show Fwd Packet Length Min = 0 in 34% of flows, whereas wire_len can never be 0.",
+    "impact": "Artificially shifts standardized feature z-scores from -0.60 to +2.45 for ordinary TCP handshakes. Multiplied across 16 length features, this forces the VAE Mean Squared Reconstruction Error above the 0.330610 threshold, causing 23/27 benign flows to be falsely flagged as anomalous.",
+    "confidence": "VERY_HIGH",
+    "proposed_fix": "In Stage C, update BidirectionalFlow.to_features_dict() to accumulate PacketRecord.payload_len for packet length statistics and total forwarded/backward bytes."
+  },
+  {
+    "id": "FIND-02",
+    "category": "Header Feature Extraction",
+    "component": "src/live/flow_extractor.py:to_features_dict",
+    "severity": "HIGH",
+    "status": "CONFIRMED_DEFECT",
+    "title": "Header Length Features Include Both IP and Transport Layer Headers",
+    "description": "In CICFlowMeter BasicFlow.java, fHeaderBytes = packet.getHeaderBytes() records only the transport layer header (TCP header length = 20 or 32 bytes; UDP header length = 8 bytes). The live flow_extractor accumulated ip_header_len + transport_header_len (40 or 52 bytes).",
+    "evidence": "BasicFlow.java:148, 152: min_seg_size_forward = packet.getHeaderBytes(); fHeaderBytes = packet.getHeaderBytes(). data/sample_flows.csv min_seg_size_forward is 20 (49 flows) and 32 (37 flows). Live extractor produced 40 and 52.",
+    "impact": "Doubles Fwd Header Length, Bwd Header Length, and elevates min_seg_size_forward z-scores from +0.59 to +2.50, directly inflating reconstruction error.",
+    "confidence": "VERY_HIGH",
+    "proposed_fix": "In Stage C, store transport_header_len in PacketRecord and accumulate it for fwd_header_len, bwd_header_len, and min_seg_size_forward."
+  },
+  {
+    "id": "FIND-03",
+    "category": "Feature Ratio Calculation",
+    "component": "src/live/flow_extractor.py:to_features_dict",
+    "severity": "MEDIUM",
+    "status": "CONFIRMED_DEFECT",
+    "title": "Down/Up Ratio Computed via Float Division Instead of Java Truncated Integer Division",
+    "description": "In CICFlowMeter BasicFlow.java line 243, getDownUpRatio() evaluates (double)(this.backward.size() / this.forward.size()) where backward.size() and forward.size() are integers, performing integer division before casting. In Python, float division produces continuous values (e.g., 0.5), causing a slight distributional shift.",
+    "evidence": "BasicFlow.java:243: return (double)(this.backward.size()/this.forward.size());",
+    "impact": "Small shift in z-score for flows where backward packets are non-zero but fewer than forward packets (e.g., 1 bwd / 2 fwd = 0.5 in Python vs 0 in Java).",
+    "confidence": "HIGH",
+    "proposed_fix": "In Stage C, update Down/Up Ratio to perform integer division: float(int(tot_bwd_pkts / max(tot_fwd_pkts, 1)))."
+  },
+  {
+    "id": "FIND-04",
+    "category": "Flow Rate Semantics",
+    "component": "src/live/flow_extractor.py:to_features_dict",
+    "severity": "LOW",
+    "status": "CONFIRMED_DEFECT",
+    "title": "Single-Packet Zero-Duration Flows Generate Synthetic Maximum Rates",
+    "description": "For instantaneous single-packet flows (duration = 0), eff_duration_sec = max(duration_sec, 1e-6) evaluates to 1 microsecond, yielding flow_pkts_s = 1,000,000 packets/sec instead of 0.0.",
+    "evidence": "src/live/flow_extractor.py lines 207, 242.",
+    "impact": "Elevates flow_pkts_s and flow_bytes_s for single-packet DNS or probe queries that are terminated immediately.",
+    "confidence": "HIGH",
+    "proposed_fix": "In Stage C, set flow_pkts_s = 0.0 and flow_bytes_s = 0.0 when duration_sec == 0 and tot_pkts == 1."
+  },
+  {
+    "id": "FIND-05",
+    "category": "Model Architecture & Threshold",
+    "component": "artifacts/models/vae_checkpoint.pt",
+    "severity": "INFO",
+    "status": "VERIFIED_CORRECT",
+    "title": "VAE Architecture and Calibrated Decision Threshold Are 100% Mathematically Sound",
+    "description": "The threshold 0.330610 saved in vae_checkpoint.pt was verified against the benign validation dataset (N=45,459) at the 99th percentile of MSE reconstruction error. Loading, evaluation mode, and scoring equations are verified identical.",
+    "evidence": "src/training/train_vae.py lines 66-67, results/master_experiment_results.json line 209, vae_checkpoint.pt threshold key: 0.33060985803604126.",
+    "impact": "The threshold does not need recalibration or lowering. Threshold alteration would compromise the false-alarm ceiling and invalidate the academic paper.",
+    "confidence": "VERY_HIGH",
+    "proposed_fix": "Preserve threshold 0.330610 intact. Do not modify."
+  },
+  {
+    "id": "FIND-06",
+    "category": "Dataset Inventory Gap",
+    "component": "data/raw",
+    "severity": "MEDIUM",
+    "status": "DATASET_GAP",
+    "title": "Absence of Raw PCAP Packet Capture Files in Repository",
+    "description": "The workspace contains pre-extracted flow CSV files from CICIDS2017 but does not contain raw .pcap packet capture files.",
+    "evidence": "Listing of data/raw contains 8 CSV files (57MB to 105MB) and no .pcap files.",
+    "impact": "Precludes running raw packet-level replays through Scapy against genuine attack captures without downloading original 50GB UNB PCAPs.",
+    "confidence": "VERY_HIGH",
+    "proposed_fix": "Document this gap in academic report. Verify live feature extraction against synthetic flows with verified CICFlowMeter ground truth."
+  }
+]

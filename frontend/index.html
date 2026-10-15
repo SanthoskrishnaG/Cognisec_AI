@@ -36,6 +36,13 @@
           <span>Overview</span>
         </button>
 
+        <button class="nav-item" data-view="live-monitoring">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+          </svg>
+          <span>Live Monitoring</span>
+        </button>
+
         <button class="nav-item" data-view="traffic-analysis">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
@@ -273,6 +280,231 @@
                   For subtle, low-rate infiltration flows, supervised decision trees failed completely (0.0% recall), whereas the VAE detected 47.22%, confirming that anomaly models serve as specialized tripwires.
                 </p>
               </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================================================================
+             SECTION 1.5: LIVE NETWORK MONITORING & REAL-TIME INFERENCE
+             ================================================================== -->
+        <section class="view-section" id="view-live-monitoring">
+          <div class="page-header">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap;">
+              <span class="badge badge-blue" style="font-weight: 700; font-size: 13px;">Live Monitoring</span>
+              <span class="badge badge-indigo">Scapy + Npcap Engine</span>
+              <span style="font-size: 13px; color: var(--text-muted); font-weight: 500;">Passive Bidirectional Flow Aggregation &amp; Real-Time Dual-Model Inference</span>
+            </div>
+            <h1 class="page-title">Live Network Flow Monitoring &amp; Inference</h1>
+            <p class="page-subtitle">
+              Capture authorized network traffic from your host network interface, aggregate packets into completed bidirectional flows, and run real-time inference through the trained 70-feature XGBoost and PyTorch VAE pipeline.
+            </p>
+          </div>
+
+          <!-- Ethical & Academic Disclaimer Alert -->
+          <div class="alert-box alert-warning" style="margin-bottom: var(--space-lg);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+              <line x1="12" y1="9" x2="12" y2="13"/>
+              <line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+            <div>
+              <strong>Authorized Monitoring Notice &amp; Prediction Disclaimer:</strong>
+              This module operates in passive observation mode on authorized host interfaces only. In accordance with privacy safeguards, packet application payloads are immediately discarded and never stored. All decisions are <em>probabilistic model predictions</em>—not confirmed malicious incidents. Without verified ground-truth labels on live networks, anomaly scores and probabilities represent statistical divergence from the CICIDS2017 training baseline.
+            </div>
+          </div>
+
+          <!-- Live Capture Control Card -->
+          <div class="card" style="margin-bottom: var(--space-lg);">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+              <span class="card-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M5 12.55a11 11 0 0 1 14.08 0"/>
+                  <path d="M1.42 9a16 16 0 0 1 21.16 0"/>
+                  <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+                  <line x1="12" y1="20" x2="12.01" y2="20"/>
+                </svg>
+                Packet Capture &amp; Session Controls
+              </span>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="status-dot" id="liveCaptureDot" style="background-color: var(--text-light);"></span>
+                <span id="liveCaptureStateLabel" style="font-weight: 600; font-size: 13px; color: var(--text-secondary);">CAPTURE IDLE</span>
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 2fr 1.5fr auto auto auto; gap: var(--space-md); align-items: end;">
+              <div>
+                <label style="display: block; font-size: 12.5px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">
+                  Network Interface (Authorized Capture Target):
+                </label>
+                <select id="liveInterfaceSelect" class="form-control" style="width: 100%; padding: 9px 12px; font-size: 13px; border-radius: var(--radius-sm); border: 1px solid var(--border-light); background: var(--bg-surface);">
+                  <option value="">Loading network interfaces...</option>
+                </select>
+              </div>
+
+              <div>
+                <label style="display: block; font-size: 12.5px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">
+                  BPF Capture Filter (Optional):
+                </label>
+                <input type="text" id="liveBpfFilterInput" placeholder="e.g. ip and (tcp or udp)" class="form-control" style="width: 100%; padding: 8px 12px; font-size: 13px; border-radius: var(--radius-sm); border: 1px solid var(--border-light);">
+              </div>
+
+              <div>
+                <button id="btnStartLiveCapture" class="btn btn-primary" style="display: flex; align-items: center; gap: 6px; padding: 9px 18px; font-weight: 600;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="5 3 19 12 5 21 5 3"/>
+                  </svg>
+                  <span>Start Capture</span>
+                </button>
+              </div>
+
+              <div>
+                <button id="btnStopLiveCapture" class="btn btn-danger" disabled style="display: flex; align-items: center; gap: 6px; padding: 9px 18px; font-weight: 600; opacity: 0.5;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <rect x="6" y="6" width="12" height="12"/>
+                  </svg>
+                  <span>Stop Capture</span>
+                </button>
+              </div>
+
+              <div>
+                <button id="btnClearLiveBuffer" class="btn btn-secondary" style="display: flex; align-items: center; gap: 6px; padding: 9px 16px;">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                  </svg>
+                  <span>Clear Buffer</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Diagnostics Alert Banner -->
+            <div id="liveCaptureAlert" style="display: none; margin-top: 14px; padding: 10px 14px; border-radius: var(--radius-sm); font-size: 13px;"></div>
+          </div>
+
+          <!-- KPI Cards Grid -->
+          <div class="grid-4" style="margin-bottom: var(--space-xl);">
+            <div class="kpi-card">
+              <span class="kpi-label">Observed Packets</span>
+              <span class="kpi-value" id="livePacketsCount">0</span>
+              <span class="kpi-subtext" id="liveActiveFlowsSubtext">0 in-flight flows</span>
+            </div>
+
+            <div class="kpi-card">
+              <span class="kpi-label">Completed Flows Processed</span>
+              <span class="kpi-value" id="liveFlowsCount" style="color: var(--brand-blue);">0</span>
+              <span class="kpi-subtext" id="liveUptimeSubtext">Uptime: 0.0s</span>
+            </div>
+
+            <div class="kpi-card">
+              <span class="kpi-label">Normal Network Flows</span>
+              <span class="kpi-value" id="liveBenignCount" style="color: var(--status-benign);">0</span>
+              <span class="kpi-subtext" id="liveBenignPct">0.0% of total flows</span>
+            </div>
+
+            <div class="kpi-card">
+              <span class="kpi-label">Suspicious / Anomalies</span>
+              <span class="kpi-value" id="liveSuspiciousCount" style="color: var(--status-attack);">0</span>
+              <span class="kpi-subtext" id="liveSuspiciousPct">0.0% flagged</span>
+            </div>
+          </div>
+
+          <!-- Model Thresholds & Criteria Reference Card -->
+          <div class="card" style="margin-bottom: var(--space-lg); background: var(--bg-surface);">
+            <div class="card-header">
+              <span class="card-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 20V10"/>
+                  <path d="M18 20V4"/>
+                  <path d="M6 20v-4"/>
+                </svg>
+                Deployed Decision Thresholds &amp; Classification Logic
+              </span>
+              <span class="badge badge-slate">Unmodified Deployment Rules</span>
+            </div>
+            <div class="grid-3" style="gap: var(--space-md);">
+              <div style="background-color: var(--bg-primary); padding: 14px; border-radius: var(--radius-md); border-left: 4px solid var(--brand-blue);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                  <strong style="font-size: 13.5px; color: var(--text-primary);">Supervised XGBoost</strong>
+                  <span class="badge badge-blue">Threshold: 0.5200</span>
+                </div>
+                <p style="font-size: 12.5px; color: var(--text-secondary); line-height: 1.5;">
+                  Evaluates raw unscaled 70-feature vectors. Produces logistic sigmoid attack probability &sigma;(&ycirc;). Flagged as <strong>Attack</strong> if probability &ge; 0.52.
+                </p>
+              </div>
+
+              <div style="background-color: var(--bg-primary); padding: 14px; border-radius: var(--radius-md); border-left: 4px solid var(--brand-indigo);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                  <strong style="font-size: 13.5px; color: var(--text-primary);">PyTorch Tabular VAE</strong>
+                  <span class="badge badge-indigo">Threshold: 0.330610</span>
+                </div>
+                <p style="font-size: 12.5px; color: var(--text-secondary); line-height: 1.5;">
+                  Evaluates log1p + standard scaled features clipped to [-5, 5]. Computes per-flow MSE reconstruction error. Flagged as <strong>Anomaly</strong> if MSE &ge; 0.330610 (99.0th percentile ceiling).
+                </p>
+              </div>
+
+              <div style="background-color: var(--bg-primary); padding: 14px; border-radius: var(--radius-md); border-left: 4px solid var(--status-warning);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                  <strong style="font-size: 13.5px; color: var(--text-primary);">Joint Research Synthesis</strong>
+                  <span class="badge badge-warning">Dual Mode</span>
+                </div>
+                <p style="font-size: 12.5px; color: var(--text-secondary); line-height: 1.5;">
+                  Correlates both models: <em>Both Flagged</em> = High-confidence known attack; <em>VAE Only</em> = Potential novel/unseen zero-day behavioral shift; <em>XGB Only</em> = Structural signature; <em>Neither</em> = Benign flow.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Live Flows Stream Table Card -->
+          <div class="card">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+              <span class="card-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                </svg>
+                Real-Time Network Flow Predictions Stream
+              </span>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <div class="btn-group" style="display: flex; border: 1px solid var(--border-light); border-radius: var(--radius-sm); overflow: hidden;">
+                  <button id="filterAllFlows" class="btn-subtle active" style="padding: 5px 12px; font-size: 12px; border: none; cursor: pointer; background: var(--brand-blue-light); color: var(--brand-blue); font-weight: 600;">All Flows</button>
+                  <button id="filterSuspiciousFlows" class="btn-subtle" style="padding: 5px 12px; font-size: 12px; border: none; cursor: pointer; background: var(--bg-surface); color: var(--text-secondary);">Suspicious Only</button>
+                  <button id="filterBenignFlows" class="btn-subtle" style="padding: 5px 12px; font-size: 12px; border: none; cursor: pointer; background: var(--bg-surface); color: var(--text-secondary);">Benign Only</button>
+                </div>
+                <span class="badge badge-slate" id="liveStreamCounter">0 flows</span>
+              </div>
+            </div>
+
+            <!-- Empty State -->
+            <div id="liveFlowsEmptyState" style="text-align: center; padding: 48px 20px;">
+              <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--bg-secondary); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: var(--text-muted);">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                </svg>
+              </div>
+              <h3 style="font-size: 15px; font-weight: 600; color: var(--text-primary); margin-bottom: 6px;">No Live Flows Captured Yet</h3>
+              <p style="font-size: 13px; color: var(--text-muted); max-width: 460px; margin: 0 auto 18px; line-height: 1.5;">
+                Select your host network interface above and click <strong>Start Capture</strong> to begin aggregating bidirectional flows and computing real-time XGBoost and VAE inference.
+              </p>
+            </div>
+
+            <!-- Table Container -->
+            <div id="liveFlowsTableContainer" class="table-container" style="display: none; max-height: 520px; overflow-y: auto;">
+              <table class="data-table" id="liveFlowsTable">
+                <thead>
+                  <tr>
+                    <th>Timestamp</th>
+                    <th>Source &rarr; Destination</th>
+                    <th>Protocol</th>
+                    <th>Duration</th>
+                    <th>Packets / Bytes</th>
+                    <th>XGBoost Prob</th>
+                    <th>VAE MSE Score</th>
+                    <th>Joint Research Decision</th>
+                  </tr>
+                </thead>
+                <tbody id="liveFlowsTableBody">
+                  <!-- Populated dynamically by live_monitoring.js -->
+                </tbody>
+              </table>
             </div>
           </div>
         </section>
@@ -1005,5 +1237,6 @@
   <script src="js/api.js"></script>
   <script src="js/charts.js"></script>
   <script src="js/app.js"></script>
+  <script src="js/live_monitoring.js"></script>
 </body>
 </html>

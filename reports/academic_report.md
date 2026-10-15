@@ -106,7 +106,7 @@ The deep learning model is implemented in PyTorch (`TabularVAE`):
 - **Decoder:** $16 \to 32 \to 64 \to 70$ with Batch Normalization and LeakyReLU.
 - **Loss Objective:** $\mathcal{L} = \text{MSE Reconstruction Loss} + \beta \times D_{KL}$, where $\beta = 0.005$.
 - **Training Protocol:** Trained exclusively on 120,000 benign flows with early stopping on benign validation loss.
-- **Threshold Calibration:** Fixed at the 99th percentile of benign validation reconstruction scores, enforcing an operational target of **1.0% False Positive Rate** ($\tau = 6.06 \times 10^{12}$).
+- **Threshold Calibration:** Fixed at the 99th percentile of benign validation reconstruction scores, enforcing an operational target of **1.0% False Positive Rate** ($\tau = 0.330610$).
 
 ---
 
@@ -220,7 +220,7 @@ This study conducted an authentic, leakage-controlled experimental comparison be
 - Chen, T., & Guestrin, C. (2016). Xgboost: A scalable tree boosting system. *Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining*, 785-794.
 - Engelen, G., Rimmer, V., & Joosen, W. (2021). Troubleshooting an incomplete machine learning flow: A cybersecurity case study. *arXiv preprint arXiv:2104.09275*.
 - Kingma, D. P., & Welling, M. (2013). Auto-encoding variational bayes. *arXiv preprint arXiv:1312.6114*.
-- Sharafaldin, I., Lashkari, A. H., & Ghorbani, A. A. (2018). Toward generating a new dataset for intrusion detection: Toward developing a new dataset for intrusion detection. *ICISSP*, 108-116.
+- Sharafaldin, I., Lashkari, A. H., & Ghorbani, A. A. (2018). Toward Generating a New Intrusion Detection Dataset and Intrusion Traffic Characterization. *Proceedings of the International Conference on Information Systems Security and Privacy (ICISSP)*, 108–116. DOI: [https://doi.org/10.5220/0006639801080116](https://doi.org/10.5220/0006639801080116). Official repository: [https://www.unb.ca/cic/datasets/ids-2017.html](https://www.unb.ca/cic/datasets/ids-2017.html).
 
 ---
 

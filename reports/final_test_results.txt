@@ -1,0 +1,29 @@
+============================= test session starts =============================
+platform win32 -- Python 3.12.10, pytest-9.1.1, pluggy-1.7.0 -- C:\Users\Santhoskrishna\Documents\Cognisec_AI\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\Santhoskrishna\Documents\Cognisec_AI
+configfile: pytest.ini
+testpaths: tests
+plugins: anyio-4.15.1
+collecting ... collected 18 items
+
+tests/test_api.py::test_api_health PASSED                                [  5%]
+tests/test_api.py::test_api_metadata PASSED                              [ 11%]
+tests/test_api.py::test_api_experiments PASSED                           [ 16%]
+tests/test_api.py::test_api_comparison PASSED                            [ 22%]
+tests/test_api.py::test_api_sample_csv PASSED                            [ 27%]
+tests/test_api.py::test_csv_preview_with_sample PASSED                   [ 33%]
+tests/test_api.py::test_csv_preview_malformed PASSED                     [ 38%]
+tests/test_api.py::test_xgboost_inference PASSED                         [ 44%]
+tests/test_api.py::test_vae_inference PASSED                             [ 50%]
+tests/test_api.py::test_dual_inference PASSED                            [ 55%]
+tests/test_api.py::test_static_frontend_routes PASSED                    [ 61%]
+tests/test_data_integrity.py::test_data_integrity_and_leakage_controls PASSED [ 66%]
+tests/test_data_integrity.py::test_record_count_and_confusion_matrix_invariants PASSED [ 72%]
+tests/test_data_integrity.py::test_statistical_validation_invariants PASSED [ 77%]
+tests/test_environment.py::test_imports PASSED                           [ 83%]
+tests/test_vae.py::test_tabular_vae_architecture PASSED                  [ 88%]
+tests/test_vae.py::test_vae_trainer_fit_and_threshold PASSED             [ 94%]
+tests/test_xgboost.py::test_xgboost_training_and_inference PASSED        [100%]
+
+============================= 18 passed in 6.49s ==============================

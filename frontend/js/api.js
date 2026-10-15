@@ -74,21 +74,51 @@ const API = {
     return this.get('/api/sample-csv');
   },
 
-  async previewCsv(formData) {
-    return this.post('/api/analyze/csv-preview', formData, true);
+  async previewCsv(data) {
+    const isForm = data instanceof FormData;
+    return this.post('/api/analyze/csv-preview', data, isForm);
   },
 
-  async runXGBoost(formData) {
-    return this.post('/api/analyze/xgboost', formData, true);
+  async runXGBoost(data) {
+    const isForm = data instanceof FormData;
+    return this.post('/api/analyze/xgboost', data, isForm);
   },
 
-  async runVAE(formData) {
-    return this.post('/api/analyze/vae', formData, true);
+  async runVAE(data) {
+    const isForm = data instanceof FormData;
+    return this.post('/api/analyze/vae', data, isForm);
   },
 
-  async runDual(formData) {
-    return this.post('/api/analyze/dual', formData, true);
+  async runDual(data) {
+    const isForm = data instanceof FormData;
+    return this.post('/api/analyze/dual', data, isForm);
+  },
+
+  // Live monitoring endpoints
+  async getLiveInterfaces() {
+    return this.get('/api/live/interfaces');
+  },
+
+  async startLiveCapture(data) {
+    return this.post('/api/live/start', data);
+  },
+
+  async stopLiveCapture() {
+    return this.post('/api/live/stop', {});
+  },
+
+  async getLiveStatus() {
+    return this.get('/api/live/status');
+  },
+
+  async getLiveFlows(limit = 50, offset = 0) {
+    return this.get(`/api/live/flows?limit=${limit}&offset=${offset}`);
+  },
+
+  async clearLiveBuffer() {
+    return this.post('/api/live/clear', {});
   }
 };
+
 
 window.API = API;

@@ -647,6 +647,21 @@ def create_app() -> Flask:
             except Exception as e:
                 return jsonify({"error": f"Dual inference failed: {str(e)}"}), 500
 
+    # Register Live Network Monitoring Blueprint
+    try:
+        from src.live.live_routes import live_bp
+        from src.live.live_manager import get_live_manager
+        app.register_blueprint(live_bp, url_prefix="/api/live")
+
+        live_mgr = get_live_manager()
+        if models_state.get("preprocessor") and models_state.get("xgb_wrapper") and models_state.get("vae_trainer"):
+            live_mgr.preprocessor = models_state["preprocessor"]
+            live_mgr.xgb_wrapper = models_state["xgb_wrapper"]
+            live_mgr.vae_trainer = models_state["vae_trainer"]
+            live_mgr.models_loaded = True
+    except Exception as e:
+        app.logger.warning(f"Could not register live monitoring blueprint: {e}")
+
     return app
 
 if __name__ == "__main__":

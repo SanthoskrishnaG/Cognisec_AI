@@ -110,6 +110,42 @@ def run_tests():
     assert len(c_data['per_family_results']) == 8
     print('    [OK] Model comparison and disaggregation loaded.')
 
+    print('[10] Testing Live Monitoring Module & Endpoints')
+    # Check JS asset
+    rl = requests.get(f'{BASE}/js/live_monitoring.js')
+    assert rl.status_code == 200, 'live_monitoring.js failed'
+
+    # Check Interfaces endpoint
+    ri = requests.get(f'{BASE}/api/live/interfaces')
+    assert ri.status_code == 200
+    i_data = ri.json()
+    assert i_data['status'] == 'success'
+    assert len(i_data['interfaces']) > 0
+    print(f'    [OK] Live interfaces enumerated ({len(i_data["interfaces"])} interfaces detected).')
+
+    # Check Live Status
+    rst = requests.get(f'{BASE}/api/live/status')
+    assert rst.status_code == 200
+    st_data = rst.json()['data']
+    assert 'is_running' in st_data
+    assert st_data['thresholds']['xgboost'] == 0.52
+    assert st_data['thresholds']['vae'] == 0.33061
+    print('    [OK] Live status telemetry verified.')
+
+    # Check Start & Stop lifecycle
+    start_resp = requests.post(f'{BASE}/api/live/start', json={'interface': 'Default', 'clear_buffer': True})
+    assert start_resp.status_code == 200
+    time_sleep = __import__('time').sleep(1.0)
+    stop_resp = requests.post(f'{BASE}/api/live/stop', json={})
+    assert stop_resp.status_code == 200
+    print('    [OK] Live capture start/stop lifecycle confirmed.')
+
+    # Check Flows buffer endpoint
+    rf = requests.get(f'{BASE}/api/live/flows?limit=10')
+    assert rf.status_code == 200
+    assert 'flows' in rf.json()
+    print(f'    [OK] Live flows query returned {rf.json()["returned"]} flows.')
+
     print('\n>>> ALL LIVE HTTP SERVER ENDPOINTS AND INFERENCE PIPELINES VERIFIED 100% SUCCESSFUL! <<<')
 
 if __name__ == '__main__':

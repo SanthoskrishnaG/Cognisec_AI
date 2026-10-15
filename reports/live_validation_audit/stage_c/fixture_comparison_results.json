@@ -1,0 +1,484 @@
+{
+  "TCP_3Way_Handshake_No_Payload": {
+    "num_packets": 3,
+    "num_diff_features": 22,
+    "differing_features": {
+      "Total Length of Fwd Packets": {
+        "old": 80.0,
+        "new": 0.0,
+        "delta": -80.0
+      },
+      "Total Length of Bwd Packets": {
+        "old": 40.0,
+        "new": 0.0,
+        "delta": -40.0
+      },
+      "Fwd Packet Length Max": {
+        "old": 40.0,
+        "new": 0.0,
+        "delta": -40.0
+      },
+      "Fwd Packet Length Min": {
+        "old": 40.0,
+        "new": 0.0,
+        "delta": -40.0
+      },
+      "Fwd Packet Length Mean": {
+        "old": 40.0,
+        "new": 0.0,
+        "delta": -40.0
+      },
+      "Bwd Packet Length Max": {
+        "old": 40.0,
+        "new": 0.0,
+        "delta": -40.0
+      },
+      "Bwd Packet Length Min": {
+        "old": 40.0,
+        "new": 0.0,
+        "delta": -40.0
+      },
+      "Bwd Packet Length Mean": {
+        "old": 40.0,
+        "new": 0.0,
+        "delta": -40.0
+      },
+      "Flow Bytes/s": {
+        "old": 4000.0038147009036,
+        "new": 0.0,
+        "delta": -4000.0038147009036
+      },
+      "Fwd Header Length": {
+        "old": 80.0,
+        "new": 40.0,
+        "delta": -40.0
+      },
+      "Bwd Header Length": {
+        "old": 40.0,
+        "new": 20.0,
+        "delta": -20.0
+      },
+      "Min Packet Length": {
+        "old": 40.0,
+        "new": 0.0,
+        "delta": -40.0
+      },
+      "Max Packet Length": {
+        "old": 40.0,
+        "new": 0.0,
+        "delta": -40.0
+      },
+      "Packet Length Mean": {
+        "old": 40.0,
+        "new": 0.0,
+        "delta": -40.0
+      },
+      "Down/Up Ratio": {
+        "old": 0.5,
+        "new": 0.0,
+        "delta": -0.5
+      },
+      "Average Packet Size": {
+        "old": 40.0,
+        "new": 0.0,
+        "delta": -40.0
+      },
+      "Avg Fwd Segment Size": {
+        "old": 40.0,
+        "new": 0.0,
+        "delta": -40.0
+      },
+      "Avg Bwd Segment Size": {
+        "old": 40.0,
+        "new": 0.0,
+        "delta": -40.0
+      },
+      "Fwd Header Length_duplicated_0": {
+        "old": 80.0,
+        "new": 40.0,
+        "delta": -40.0
+      },
+      "Subflow Fwd Bytes": {
+        "old": 80.0,
+        "new": 0.0,
+        "delta": -80.0
+      },
+      "Subflow Bwd Bytes": {
+        "old": 40.0,
+        "new": 0.0,
+        "delta": -40.0
+      },
+      "min_seg_size_forward": {
+        "old": 40.0,
+        "new": 20.0,
+        "delta": -20.0
+      }
+    },
+    "inference_old": {
+      "xgb_prob": 3.942095190723194e-06,
+      "xgb_pred": "BENIGN",
+      "vae_mse": 0.9478663802146912,
+      "vae_pred": "ANOMALY"
+    },
+    "inference_new": {
+      "xgb_prob": 8.088706522357825e-07,
+      "xgb_pred": "BENIGN",
+      "vae_mse": 0.7279905676841736,
+      "vae_pred": "ANOMALY"
+    }
+  },
+  "HTTP_Transaction_With_Payload": {
+    "num_packets": 8,
+    "num_diff_features": 22,
+    "differing_features": {
+      "Total Length of Fwd Packets": {
+        "old": 207.0,
+        "new": 47.0,
+        "delta": -160.0
+      },
+      "Total Length of Bwd Packets": {
+        "old": 179.0,
+        "new": 59.0,
+        "delta": -120.0
+      },
+      "Fwd Packet Length Max": {
+        "old": 87.0,
+        "new": 47.0,
+        "delta": -40.0
+      },
+      "Fwd Packet Length Min": {
+        "old": 40.0,
+        "new": 0.0,
+        "delta": -40.0
+      },
+      "Fwd Packet Length Mean": {
+        "old": 51.75,
+        "new": 11.75,
+        "delta": -40.0
+      },
+      "Bwd Packet Length Max": {
+        "old": 99.0,
+        "new": 59.0,
+        "delta": -40.0
+      },
+      "Bwd Packet Length Min": {
+        "old": 40.0,
+        "new": 0.0,
+        "delta": -40.0
+      },
+      "Bwd Packet Length Mean": {
+        "old": 59.666666666666664,
+        "new": 19.666666666666668,
+        "delta": -40.0
+      },
+      "Flow Bytes/s": {
+        "old": 6433.339468643953,
+        "new": 1766.668351492899,
+        "delta": -4666.671117151054
+      },
+      "Fwd Header Length": {
+        "old": 160.0,
+        "new": 80.0,
+        "delta": -80.0
+      },
+      "Bwd Header Length": {
+        "old": 120.0,
+        "new": 60.0,
+        "delta": -60.0
+      },
+      "Min Packet Length": {
+        "old": 40.0,
+        "new": 0.0,
+        "delta": -40.0
+      },
+      "Max Packet Length": {
+        "old": 99.0,
+        "new": 59.0,
+        "delta": -40.0
+      },
+      "Packet Length Mean": {
+        "old": 55.142857142857146,
+        "new": 15.142857142857142,
+        "delta": -40.0
+      },
+      "Down/Up Ratio": {
+        "old": 0.75,
+        "new": 0.0,
+        "delta": -0.75
+      },
+      "Average Packet Size": {
+        "old": 55.142857142857146,
+        "new": 15.142857142857142,
+        "delta": -40.0
+      },
+      "Avg Fwd Segment Size": {
+        "old": 51.75,
+        "new": 11.75,
+        "delta": -40.0
+      },
+      "Avg Bwd Segment Size": {
+        "old": 59.666666666666664,
+        "new": 19.666666666666668,
+        "delta": -40.0
+      },
+      "Fwd Header Length_duplicated_0": {
+        "old": 160.0,
+        "new": 80.0,
+        "delta": -80.0
+      },
+      "Subflow Fwd Bytes": {
+        "old": 207.0,
+        "new": 47.0,
+        "delta": -160.0
+      },
+      "Subflow Bwd Bytes": {
+        "old": 179.0,
+        "new": 59.0,
+        "delta": -120.0
+      },
+      "min_seg_size_forward": {
+        "old": 40.0,
+        "new": 20.0,
+        "delta": -20.0
+      }
+    },
+    "inference_old": {
+      "xgb_prob": 0.20138654112815857,
+      "xgb_pred": "BENIGN",
+      "vae_mse": 1.732540488243103,
+      "vae_pred": "ANOMALY"
+    },
+    "inference_new": {
+      "xgb_prob": 0.000524973263964057,
+      "xgb_pred": "BENIGN",
+      "vae_mse": 1.4163354635238647,
+      "vae_pred": "ANOMALY"
+    }
+  },
+  "Single_Packet_Zero_Duration_UDP": {
+    "num_packets": 1,
+    "num_diff_features": 16,
+    "differing_features": {
+      "Total Length of Fwd Packets": {
+        "old": 36.0,
+        "new": 8.0,
+        "delta": -28.0
+      },
+      "Fwd Packet Length Max": {
+        "old": 36.0,
+        "new": 8.0,
+        "delta": -28.0
+      },
+      "Fwd Packet Length Min": {
+        "old": 36.0,
+        "new": 8.0,
+        "delta": -28.0
+      },
+      "Fwd Packet Length Mean": {
+        "old": 36.0,
+        "new": 8.0,
+        "delta": -28.0
+      },
+      "Flow Bytes/s": {
+        "old": 36000000.0,
+        "new": 0.0,
+        "delta": -36000000.0
+      },
+      "Flow Packets/s": {
+        "old": 1000000.0,
+        "new": 0.0,
+        "delta": -1000000.0
+      },
+      "Fwd Header Length": {
+        "old": 28.0,
+        "new": 8.0,
+        "delta": -20.0
+      },
+      "Fwd Packets/s": {
+        "old": 1000000.0,
+        "new": 0.0,
+        "delta": -1000000.0
+      },
+      "Min Packet Length": {
+        "old": 36.0,
+        "new": 8.0,
+        "delta": -28.0
+      },
+      "Max Packet Length": {
+        "old": 36.0,
+        "new": 8.0,
+        "delta": -28.0
+      },
+      "Packet Length Mean": {
+        "old": 36.0,
+        "new": 8.0,
+        "delta": -28.0
+      },
+      "Average Packet Size": {
+        "old": 36.0,
+        "new": 8.0,
+        "delta": -28.0
+      },
+      "Avg Fwd Segment Size": {
+        "old": 36.0,
+        "new": 8.0,
+        "delta": -28.0
+      },
+      "Fwd Header Length_duplicated_0": {
+        "old": 28.0,
+        "new": 8.0,
+        "delta": -20.0
+      },
+      "Subflow Fwd Bytes": {
+        "old": 36.0,
+        "new": 8.0,
+        "delta": -28.0
+      },
+      "min_seg_size_forward": {
+        "old": 28.0,
+        "new": 8.0,
+        "delta": -20.0
+      }
+    },
+    "inference_old": {
+      "xgb_prob": 0.0007358308066613972,
+      "xgb_pred": "BENIGN",
+      "vae_mse": 0.14166583120822906,
+      "vae_pred": "NORMAL"
+    },
+    "inference_new": {
+      "xgb_prob": 0.0004999876255169511,
+      "xgb_pred": "BENIGN",
+      "vae_mse": 0.6441946029663086,
+      "vae_pred": "ANOMALY"
+    }
+  },
+  "Asymmetric_8Fwd_5Bwd_UDP": {
+    "num_packets": 13,
+    "num_diff_features": 22,
+    "differing_features": {
+      "Total Length of Fwd Packets": {
+        "old": 264.0,
+        "new": 40.0,
+        "delta": -224.0
+      },
+      "Total Length of Bwd Packets": {
+        "old": 165.0,
+        "new": 25.0,
+        "delta": -140.0
+      },
+      "Fwd Packet Length Max": {
+        "old": 33.0,
+        "new": 5.0,
+        "delta": -28.0
+      },
+      "Fwd Packet Length Min": {
+        "old": 33.0,
+        "new": 5.0,
+        "delta": -28.0
+      },
+      "Fwd Packet Length Mean": {
+        "old": 33.0,
+        "new": 5.0,
+        "delta": -28.0
+      },
+      "Bwd Packet Length Max": {
+        "old": 33.0,
+        "new": 5.0,
+        "delta": -28.0
+      },
+      "Bwd Packet Length Min": {
+        "old": 33.0,
+        "new": 5.0,
+        "delta": -28.0
+      },
+      "Bwd Packet Length Mean": {
+        "old": 33.0,
+        "new": 5.0,
+        "delta": -28.0
+      },
+      "Flow Bytes/s": {
+        "old": 6128.57727323817,
+        "new": 928.5723141269955,
+        "delta": -5200.004959111175
+      },
+      "Fwd Header Length": {
+        "old": 224.0,
+        "new": 64.0,
+        "delta": -160.0
+      },
+      "Bwd Header Length": {
+        "old": 140.0,
+        "new": 40.0,
+        "delta": -100.0
+      },
+      "Min Packet Length": {
+        "old": 33.0,
+        "new": 5.0,
+        "delta": -28.0
+      },
+      "Max Packet Length": {
+        "old": 33.0,
+        "new": 5.0,
+        "delta": -28.0
+      },
+      "Packet Length Mean": {
+        "old": 33.0,
+        "new": 5.0,
+        "delta": -28.0
+      },
+      "Down/Up Ratio": {
+        "old": 0.625,
+        "new": 0.0,
+        "delta": -0.625
+      },
+      "Average Packet Size": {
+        "old": 33.0,
+        "new": 5.0,
+        "delta": -28.0
+      },
+      "Avg Fwd Segment Size": {
+        "old": 33.0,
+        "new": 5.0,
+        "delta": -28.0
+      },
+      "Avg Bwd Segment Size": {
+        "old": 33.0,
+        "new": 5.0,
+        "delta": -28.0
+      },
+      "Fwd Header Length_duplicated_0": {
+        "old": 224.0,
+        "new": 64.0,
+        "delta": -160.0
+      },
+      "Subflow Fwd Bytes": {
+        "old": 264.0,
+        "new": 40.0,
+        "delta": -224.0
+      },
+      "Subflow Bwd Bytes": {
+        "old": 165.0,
+        "new": 25.0,
+        "delta": -140.0
+      },
+      "min_seg_size_forward": {
+        "old": 28.0,
+        "new": 8.0,
+        "delta": -20.0
+      }
+    },
+    "inference_old": {
+      "xgb_prob": 0.0003363964206073433,
+      "xgb_pred": "BENIGN",
+      "vae_mse": 0.4025990664958954,
+      "vae_pred": "ANOMALY"
+    },
+    "inference_new": {
+      "xgb_prob": 0.018767647445201874,
+      "xgb_pred": "BENIGN",
+      "vae_mse": 0.7781427502632141,
+      "vae_pred": "ANOMALY"
+    }
+  }
+}

@@ -1,6 +1,9 @@
 {
     "dataset": "CICIDS2017",
     "total_evaluated_records": 257297,
+    "total_unique_test_records": 257297,
+    "total_benchmark_evaluations": 297297,
+    "shared_benign_control_records": 40000,
     "experiment_a_known": {
         "xgboost": {
             "accuracy": 0.9996242645177795,
@@ -53,11 +56,20 @@
             }
         },
         "paired_comparison": {
+            "metric_compared": "f1_score",
             "delta_point": 0.5898,
             "ci_lower": 0.5859,
             "ci_upper": 0.5938,
             "p_value_approx": 0.0,
-            "significant_at_95": true
+            "p_value_bound": "< 0.001",
+            "significant_at_95": true,
+            "mcnemar_test": {
+                "chi2_statistic": 63305.09,
+                "df": 1,
+                "p_value_bound": "< 0.001",
+                "xgb_correct_vae_incorrect": 63421,
+                "vae_correct_xgb_incorrect": 38
+            }
         }
     },
     "experiment_b_held_out": {
@@ -108,11 +120,21 @@
             }
         },
         "paired_comparison": {
+            "metric_compared": "recall",
             "delta_point": 0.4591,
             "ci_lower": 0.4568,
             "ci_upper": 0.4619,
             "p_value_approx": 0.0,
-            "significant_at_95": true
+            "p_value_bound": "< 0.001",
+            "significant_at_95": true,
+            "mcnemar_test": {
+                "chi2_statistic": 60128.40,
+                "df": 1,
+                "p_value_bound": "< 0.001",
+                "xgb_correct_vae_incorrect": 61482,
+                "vae_correct_xgb_incorrect": 455,
+                "vae_unique_attack_detections": 420
+            }
         },
         "per_family_results": {
             "Bot": {
