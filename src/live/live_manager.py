@@ -315,7 +315,7 @@ class LiveCaptureManager:
     # -------------------------------------------------------------------------
     def _packet_callback(self, packet: Any) -> None:
         """Callback invoked by Scapy for every observed packet."""
-        if self._stop_event.is_set():
+        if self._stop_event.is_set() or not self.is_running:
             return
 
         with self._lock:
@@ -502,9 +502,11 @@ class LiveCaptureManager:
         vae_thresh = 0.330610
 
         if not buffer_items:
+            now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             return {
                 "has_traffic": False,
                 "is_running": running,
+                "is_capturing": running,
                 "uptime_seconds": round(uptime, 1),
                 "total_flows": flows_count,
                 "total_packets": pkts,
@@ -528,7 +530,10 @@ class LiveCaptureManager:
                     "xgboost": xgb_thresh,
                     "vae": vae_thresh
                 },
-                "last_updated": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                "telemetry_timestamp": now_str,
+                "last_updated": now_str,
+                "capture_errors": list(self.validation_errors)[-5:] if self.validation_errors else [],
+                "disclaimer": "Live Network Model Predictions Only (No Ground-Truth Label). Real-world precision, recall, and false-alarm rates cannot be computed without verified ground-truth."
             }
 
         # Analyze actual captured flows
@@ -634,9 +639,11 @@ class LiveCaptureManager:
         norm_pct = round((benign / max(flows_count, 1)) * 100, 2)
         susp_pct = round((suspicious / max(flows_count, 1)) * 100, 2)
 
+        now_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         return {
             "has_traffic": True,
             "is_running": running,
+            "is_capturing": running,
             "uptime_seconds": round(uptime, 1),
             "total_flows": flows_count,
             "total_packets": pkts,
@@ -667,7 +674,10 @@ class LiveCaptureManager:
                 "xgboost": xgb_thresh,
                 "vae": vae_thresh
             },
-            "last_updated": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            "telemetry_timestamp": now_str,
+            "last_updated": now_str,
+            "capture_errors": list(self.validation_errors)[-5:] if self.validation_errors else [],
+            "disclaimer": "Live Network Model Predictions Only (No Ground-Truth Label). Real-world precision, recall, and false-alarm rates cannot be computed without verified ground-truth."
         }
 
 

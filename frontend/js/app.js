@@ -203,6 +203,22 @@ document.addEventListener('DOMContentLoaded', () => {
     if (vaeBadge && health.models?.vae?.threshold !== undefined) {
       vaeBadge.textContent = `VAE Threshold: ${health.models.vae.threshold.toFixed(4)}`;
     }
+
+    // Live Monitoring threshold badges
+    const liveXgbThreshBadge = document.getElementById('liveXgbThreshBadge');
+    if (liveXgbThreshBadge && health.models?.xgboost?.threshold !== undefined) {
+      liveXgbThreshBadge.textContent = `Threshold: ${Number(health.models.xgboost.threshold).toFixed(4)}`;
+    }
+
+    const liveVaeThreshBadge = document.getElementById('liveVaeThreshBadge');
+    if (liveVaeThreshBadge && health.models?.vae?.threshold !== undefined) {
+      liveVaeThreshBadge.textContent = `Threshold: ${Number(health.models.vae.threshold).toFixed(6)}`;
+    }
+
+    const methodThreshold = document.getElementById('methodCalibratedThreshold');
+    if (methodThreshold && health.models?.vae?.threshold !== undefined) {
+      methodThreshold.textContent = `Calibrated Threshold = ${Number(health.models.vae.threshold).toFixed(4)}`;
+    }
   }
 
   // --------------------------------------------------------------------------
@@ -223,6 +239,30 @@ document.addEventListener('DOMContentLoaded', () => {
     const heldOutFamiliesEl = document.getElementById('ovHeldOutFamilies');
     if (heldOutFamiliesEl && meta.research_integrity?.unseen_attack_families) {
       heldOutFamiliesEl.textContent = meta.research_integrity.unseen_attack_families.join(', ');
+    }
+
+    const heldOutCountEl = document.getElementById('ovHeldOutCount');
+    const heldOutAttacks = meta.partitioning?.test_summary?.held_out_attacks;
+    if (heldOutCountEl && heldOutAttacks !== undefined) {
+      heldOutCountEl.textContent = Number(heldOutAttacks).toLocaleString();
+    }
+
+    // Dynamic research methodology numbers
+    const methodRawFlows = document.getElementById('methodRawFlows');
+    if (methodRawFlows && meta.total_raw_records) {
+      methodRawFlows.textContent = `${Number(meta.total_raw_records).toLocaleString()} raw flows`;
+    }
+
+    const methodBenignFlows = document.getElementById('methodBenignFlows');
+    const trainBenign = meta.partitioning?.train_summary?.benign;
+    if (methodBenignFlows && trainBenign) {
+      methodBenignFlows.textContent = `${Number(trainBenign).toLocaleString()} Benign Flows`;
+    }
+
+    const methodTestFlows = document.getElementById('methodTestFlows');
+    const testTotal = meta.partitioning?.test_summary?.total;
+    if (methodTestFlows && testTotal) {
+      methodTestFlows.textContent = `${Number(testTotal).toLocaleString()} Test Flows`;
     }
   }
 
@@ -746,6 +786,23 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderModelComparisonPage(comp) {
     if (!comp) return;
 
+    // Update Overview KPI cards from verified historical benchmark metrics
+    const ovXgbPrAuc = document.getElementById('ovXgbPrAuc');
+    if (ovXgbPrAuc && comp.known_attack_metrics) {
+      const prMetric = comp.known_attack_metrics.find(m => m.metric && m.metric.includes('PR-AUC'));
+      if (prMetric) {
+        ovXgbPrAuc.textContent = `${(Number(prMetric.xgboost) * 100).toFixed(2)}%`;
+      }
+    }
+
+    const ovVaeInfilRecall = document.getElementById('ovVaeInfilRecall');
+    if (ovVaeInfilRecall && comp.per_family_results) {
+      const infil = comp.per_family_results.find(f => f.family === 'Infiltration');
+      if (infil) {
+        ovVaeInfilRecall.textContent = `${Number(infil.vae_recall).toFixed(2)}%`;
+      }
+    }
+
     // Metrics table
     const tableBody = document.getElementById('comparisonTableBody');
     if (tableBody && comp.known_attack_metrics) {
@@ -868,6 +925,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const deltaEl = document.getElementById('unseenDeltaRecall');
     if (deltaEl) deltaEl.textContent = `Δ = ${(paired.delta_point * 100).toFixed(2)}% (p < 0.001)`;
 
+    const unseenHeldOutBadge = document.getElementById('unseenHeldOutBadge');
+    if (unseenHeldOutBadge && comp.complementarity && comp.complementarity.total_held_out_attacks) {
+      unseenHeldOutBadge.textContent = `${Number(comp.complementarity.total_held_out_attacks).toLocaleString()} Held-Out Attacks`;
+    }
+
     // Disaggregated table
     const unseenTableBody = document.getElementById('unseenTableBody');
     if (unseenTableBody && comp.per_family_results) {
@@ -922,6 +984,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const fig1Data = (AppState.researchFigures && AppState.researchFigures.data && AppState.researchFigures.data.fig1_dataset_distribution) || meta.family_distribution || meta.dataset_distribution;
     if (fig1Data) {
       Charts.renderDatasetDistribution('datasetDistributionChart', fig1Data);
+    }
+
+    // Daily provenance list populated dynamically from verified files
+    const provList = document.getElementById('dsProvenanceList');
+    if (provList && meta.file_provenance) {
+      let provHtml = '';
+      Object.entries(meta.file_provenance).forEach(([fn, count]) => {
+        provHtml += `<span>• ${fn}: <strong>${Number(count).toLocaleString()}</strong> flows</span>`;
+      });
+      provList.innerHTML = provHtml;
     }
 
     // Partition distributions table

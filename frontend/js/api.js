@@ -62,6 +62,10 @@ const API = {
     return this.get('/api/metadata');
   },
 
+  async getDatasetVerification() {
+    return this.get('/api/dataset/verify');
+  },
+
   async getExperiments() {
     return this.get('/api/experiments');
   },

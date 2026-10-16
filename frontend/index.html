@@ -186,17 +186,17 @@
             </div>
             <div class="kpi-card">
               <span class="kpi-label">Supervised XGBoost</span>
-              <span class="kpi-value" style="color: var(--brand-blue);">99.99%</span>
+              <span class="kpi-value" style="color: var(--brand-blue);" id="ovXgbPrAuc">99.99%</span>
               <span class="kpi-subtext">Known Attack PR-AUC (Exp A)</span>
             </div>
             <div class="kpi-card">
               <span class="kpi-label">Tabular PyTorch VAE</span>
-              <span class="kpi-value" style="color: var(--brand-indigo);">47.22%</span>
+              <span class="kpi-value" style="color: var(--brand-indigo);" id="ovVaeInfilRecall">47.22%</span>
               <span class="kpi-subtext">Stealth Infiltration Recall (Exp B)</span>
             </div>
             <div class="kpi-card">
               <span class="kpi-label">Zero-Day Evaluation</span>
-              <span class="kpi-value">132,209</span>
+              <span class="kpi-value" id="ovHeldOutCount">132,209</span>
               <span class="kpi-subtext">Unseen Held-Out Attack Flows</span>
             </div>
           </div>
@@ -471,7 +471,7 @@
               <div style="background-color: var(--bg-primary); padding: 14px; border-radius: var(--radius-md); border-left: 4px solid var(--brand-blue);">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                   <strong style="font-size: 13.5px; color: var(--text-primary);">Supervised XGBoost</strong>
-                  <span class="badge badge-blue">Threshold: 0.5200</span>
+                  <span class="badge badge-blue" id="liveXgbThreshBadge">Threshold: 0.5200</span>
                 </div>
                 <p style="font-size: 12.5px; color: var(--text-secondary); line-height: 1.5;">
                   Evaluates raw unscaled 70-feature vectors. Produces logistic sigmoid attack probability &sigma;(&ycirc;). Flagged as <strong>Attack</strong> if probability &ge; 0.52.
@@ -481,7 +481,7 @@
               <div style="background-color: var(--bg-primary); padding: 14px; border-radius: var(--radius-md); border-left: 4px solid var(--brand-indigo);">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                   <strong style="font-size: 13.5px; color: var(--text-primary);">PyTorch Tabular VAE</strong>
-                  <span class="badge badge-indigo">Threshold: 0.330610</span>
+                  <span class="badge badge-indigo" id="liveVaeThreshBadge">Threshold: 0.330610</span>
                 </div>
                 <p style="font-size: 12.5px; color: var(--text-secondary); line-height: 1.5;">
                   Evaluates log1p + standard scaled features clipped to [-5, 5]. Computes per-flow MSE reconstruction error. Flagged as <strong>Anomaly</strong> if MSE &ge; 0.330610 (99.0th percentile ceiling).
@@ -979,7 +979,7 @@
             <div class="card">
               <div class="card-header">
                 <span class="card-title">Experiment F: Model Complementarity Breakdown</span>
-                <span class="badge badge-indigo">132,209 Held-Out Attacks</span>
+                <span class="badge badge-indigo" id="unseenHeldOutBadge">132,209 Held-Out Attacks</span>
               </div>
               <p class="card-description">
                 Categorization of detections on all held-out zero-day flows.
@@ -1074,7 +1074,7 @@
                 <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">
                   Aggregated from all 8 official daily CSV files released by the Canadian Institute for Cybersecurity:
                 </p>
-                <div style="font-size: 12px; color: var(--text-muted); display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
+                <div id="dsProvenanceList" style="font-size: 12px; color: var(--text-muted); display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
                   <span>• Monday (Normal): 25,000 flows</span>
                   <span>• Tuesday (Brute Force): 38,835 flows</span>
                   <span>• Wednesday (DoS Hulk): 277,672 flows</span>
@@ -1155,7 +1155,7 @@
                 <div class="step-content">
                   <div class="step-title">CICIDS2017 Dataset Acquisition & Ingestion</div>
                   <div class="step-desc">Acquire all 8 official daily PCAP flow CSV files with SHA-256 integrity verification, stripping non-reproducible socket identity headers.</div>
-                  <div class="step-meta"><span class="badge badge-slate">757,646 raw flows</span></div>
+                  <div class="step-meta"><span class="badge badge-slate" id="methodRawFlows">757,646 raw flows</span></div>
                 </div>
               </div>
 
@@ -1191,7 +1191,7 @@
                 <div class="step-content">
                   <div class="step-title">Benign-Only PyTorch Tabular VAE Training</div>
                   <div class="step-desc">Trains a 16-dimensional latent VAE exclusively on normal benign network flows with ELBO loss (Reconstruction MSE + $\beta$-KL divergence, $\beta=0.005$).</div>
-                  <div class="step-meta"><span class="badge badge-indigo">120,000 Benign Flows</span><span class="badge badge-slate">Latent Dim = 16</span></div>
+                  <div class="step-meta"><span class="badge badge-indigo" id="methodBenignFlows">120,000 Benign Flows</span><span class="badge badge-slate">Latent Dim = 16</span></div>
                 </div>
               </div>
 
@@ -1200,7 +1200,7 @@
                 <div class="step-content">
                   <div class="step-title">Validation-Based Threshold Calibration</div>
                   <div class="step-desc">Calibrates operational anomaly threshold at a 1.0% false alarm rate (FPR) ceiling strictly using the independent benign validation partition.</div>
-                  <div class="step-meta"><span class="badge badge-indigo">Calibrated Threshold = 0.3306</span></div>
+                  <div class="step-meta"><span class="badge badge-indigo" id="methodCalibratedThreshold">Calibrated Threshold = 0.3306</span></div>
                 </div>
               </div>
 
@@ -1209,7 +1209,7 @@
                 <div class="step-content">
                   <div class="step-title">Known & Held-Out Attack Family Benchmark</div>
                   <div class="step-desc">Executes Experiments A through F on the test partition, measuring PR-AUC, F1-scores with 95% bootstrap confidence intervals, and per-family recall disaggregation.</div>
-                  <div class="step-meta"><span class="badge badge-slate">257,297 Test Flows</span></div>
+                  <div class="step-meta"><span class="badge badge-slate" id="methodTestFlows">257,297 Test Flows</span></div>
                 </div>
               </div>
 

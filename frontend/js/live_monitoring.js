@@ -395,14 +395,22 @@
     // 5. Telemetry Timestamp
     const tsEl = document.getElementById('liveTelemetryTimestamp');
     if (tsEl) {
+      const isCapturing = Boolean(analytics.is_running || analytics.is_capturing);
+      const updateTime = analytics.telemetry_timestamp || analytics.last_updated || new Date().toLocaleTimeString();
+
       if (analytics.has_traffic) {
-        tsEl.textContent = `Updated: ${analytics.telemetry_timestamp || new Date().toLocaleTimeString()}`;
-        tsEl.className = 'badge badge-green';
-      } else if (analytics.is_capturing) {
+        if (isCapturing) {
+          tsEl.textContent = `Live Updating: ${updateTime}`;
+          tsEl.className = 'badge badge-green';
+        } else {
+          tsEl.textContent = `Capture Stopped (Data Frozen at ${updateTime})`;
+          tsEl.className = 'badge badge-slate';
+        }
+      } else if (isCapturing) {
         tsEl.textContent = 'Capture Active (Awaiting Traffic)';
         tsEl.className = 'badge badge-blue';
       } else {
-        tsEl.textContent = 'Capture Idle';
+        tsEl.textContent = 'Capture Idle (No Flows Captured)';
         tsEl.className = 'badge badge-slate';
       }
     }

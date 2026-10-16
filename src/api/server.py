@@ -31,6 +31,7 @@ if str(BASE_DIR) not in sys.path:
 from src.models.xgboost_model import XGBoostClassifierWrapper
 from src.models.vae_model import TabularVAE, VAETrainer
 from src.utils.device import get_device_info, get_device, clear_gpu_memory
+from src.data.validation import verify_dataset_files
 
 def create_app() -> Flask:
     app = Flask(__name__, static_folder=str(FRONTEND_DIR))
@@ -466,9 +467,27 @@ def create_app() -> Flask:
             "Flow ID", "Source IP", "Destination IP", "Timestamp", "External IP"
         ]
 
+        # Authenticated verification of physical on-disk dataset files
+        raw_verification = verify_dataset_files(
+            raw_data_dir=DATA_DIR / "raw",
+            audit_report_path=REPORTS_DIR / "data_audit_report.json"
+        )
+
+        total_raw = raw_verification.get("total_records")
+        if total_raw is None:
+            total_raw = data_audit.get("total_records")
+
+        benign_count = raw_verification.get("benign_records")
+        attack_count = raw_verification.get("attack_records")
+
         return jsonify({
             "dataset_name": "CICIDS2017 (Canadian Institute for Cybersecurity)",
-            "total_raw_records": data_audit.get("total_records", 757646),
+            "is_dataset_verified": raw_verification.get("is_verified", False),
+            "verification_status": raw_verification.get("status", "unknown"),
+            "counting_method": raw_verification.get("counting_method"),
+            "total_raw_records": total_raw,
+            "benign_records_count": benign_count,
+            "attack_records_count": attack_count,
             "retained_clean_features_count": len(features_list),
             "feature_columns": features_list,
             "leakage_columns_stripped": leakage_cols,
@@ -477,6 +496,10 @@ def create_app() -> Flask:
             "infinite_values_cleaned": data_audit.get("infinite_values", {}),
             "missing_values_imputed": data_audit.get("missing_values", {}),
             "constant_features_dropped": data_audit.get("constant_features", []),
+            "file_provenance": raw_verification.get("file_provenance") or data_audit.get("file_provenance", {}),
+            "files_verified": raw_verification.get("files", []),
+            "missing_files": raw_verification.get("missing_files", []),
+            "dataset_verification": raw_verification,
             "partitioning": manifest,
             "research_integrity": {
                 "train_test_identical_vectors_concern": 14682,
@@ -489,6 +512,15 @@ def create_app() -> Flask:
                 "unseen_attack_families": manifest.get("held_out_attack_families", ["DDoS", "Web_Attack", "Bot", "Infiltration"])
             }
         })
+
+    @app.route("/api/dataset/verify", methods=["GET"])
+    def get_dataset_verification():
+        raw_verification = verify_dataset_files(
+            raw_data_dir=DATA_DIR / "raw",
+            audit_report_path=REPORTS_DIR / "data_audit_report.json"
+        )
+        status_code = 200 if raw_verification.get("is_verified", False) else 500
+        return jsonify(raw_verification), status_code
 
     # -------------------------------------------------------------------------
     # API: Master Experiment Results
