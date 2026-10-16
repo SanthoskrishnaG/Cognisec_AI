@@ -219,6 +219,14 @@
         uptime_seconds: 0
       });
       renderFlowsTable();
+      renderLiveCharts({
+        has_traffic: false,
+        traffic_volume_over_time: [],
+        vae_scores_over_time: [],
+        protocol_distribution: {},
+        top_suspicious_flows: [],
+        telemetry_timestamp: null
+      });
       showToastMessage('Buffer Cleared', 'Live flow history and counters have been reset.', 'info');
     } catch (err) {
       console.error('Failed to clear buffer:', err);
@@ -330,8 +338,73 @@
         renderFlowsTable();
       }
 
+      // 3. Fetch Live Analytics & Update Dynamic SVG Telemetry Charts
+      try {
+        const analyticsResp = await window.API.getLiveAnalytics();
+        if (analyticsResp && analyticsResp.data) {
+          renderLiveCharts(analyticsResp.data);
+        }
+      } catch (anErr) {
+        console.warn('Live analytics polling notice:', anErr);
+      }
+
     } catch (err) {
       console.warn('Telemetry polling error:', err);
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // Live SVG Charts Rendering
+  // --------------------------------------------------------------------------
+  function renderLiveCharts(analytics) {
+    if (!analytics || !window.Charts) return;
+
+    // 1. Traffic Volume Over Time
+    window.Charts.renderLiveTrafficVolume('liveTrafficVolumeChart', analytics.traffic_volume_over_time);
+
+    // 2. VAE Anomaly Scores Over Time with calibrated threshold
+    window.Charts.renderLiveVaeScores('liveVaeScoreChart', analytics.vae_scores_over_time, analytics.vae_threshold || 0.330610);
+
+    // 3. Observed Protocol Distribution Donut
+    window.Charts.renderProtocolDonut('liveProtocolChart', analytics.protocol_distribution);
+
+    // 4. Top Suspicious Flows (Risk-Ranked with privacy IP masking)
+    const topContainer = document.getElementById('liveTopSuspiciousContainer');
+    if (topContainer) {
+      const topFlows = analytics.top_suspicious_flows || [];
+      if (topFlows.length === 0) {
+        topContainer.innerHTML = '<div class="chart-empty-state"><p>No suspicious flows detected yet.</p></div>';
+      } else {
+        let listHtml = '<table class="data-table" style="font-size: 11.5px; margin: 0;"><thead><tr><th>Risk Rank</th><th>Endpoints (Masked)</th><th>Proto</th><th>Score</th><th>Flagged By</th></tr></thead><tbody>';
+        topFlows.forEach((f, idx) => {
+          listHtml += `
+            <tr>
+              <td><span class="badge badge-red" style="font-size: 10.5px;">#${idx + 1} Risk</span></td>
+              <td><code>${f.src_ip}:${f.src_port} &rarr; ${f.dst_ip}:${f.dst_port}</code></td>
+              <td><span class="badge badge-slate">${f.protocol}</span></td>
+              <td><strong style="color: #dc2626;">${f.score}</strong></td>
+              <td><span class="badge ${f.flagged_by === 'Both' ? 'badge-red' : (f.flagged_by === 'VAE' ? 'badge-indigo' : 'badge-blue')}">${f.flagged_by}</span></td>
+            </tr>
+          `;
+        });
+        listHtml += '</tbody></table>';
+        topContainer.innerHTML = listHtml;
+      }
+    }
+
+    // 5. Telemetry Timestamp
+    const tsEl = document.getElementById('liveTelemetryTimestamp');
+    if (tsEl) {
+      if (analytics.has_traffic) {
+        tsEl.textContent = `Updated: ${analytics.telemetry_timestamp || new Date().toLocaleTimeString()}`;
+        tsEl.className = 'badge badge-green';
+      } else if (analytics.is_capturing) {
+        tsEl.textContent = 'Capture Active (Awaiting Traffic)';
+        tsEl.className = 'badge badge-blue';
+      } else {
+        tsEl.textContent = 'Capture Idle';
+        tsEl.className = 'badge badge-slate';
+      }
     }
   }
 

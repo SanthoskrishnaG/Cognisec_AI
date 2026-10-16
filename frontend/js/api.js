@@ -117,8 +117,34 @@ const API = {
 
   async clearLiveBuffer() {
     return this.post('/api/live/clear', {});
+  },
+
+  async getLiveAnalytics() {
+    return this.get('/api/analytics/live');
+  },
+
+  async getLiveHistory() {
+    return this.get('/api/analytics/live/history');
+  },
+
+  async getAnalyticsSummary() {
+    return this.get('/api/analytics/summary');
+  },
+
+  async getResearchFigures() {
+    return this.get('/api/results/research-figures');
+  },
+
+  async getCsvAnalytics(data) {
+    const isForm = data instanceof FormData;
+    return this.post('/api/analyze/csv-analytics', data, isForm);
+  },
+
+  async getUploadAnalytics(analysisId) {
+    return this.get(`/api/analytics/upload/${analysisId}`);
   }
 };
+
 
 
 window.API = API;

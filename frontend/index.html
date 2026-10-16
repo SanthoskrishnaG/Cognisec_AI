@@ -9,6 +9,9 @@
 </head>
 <body>
   <div class="app-container">
+    <!-- Mobile Navigation Backdrop Overlay -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop" aria-hidden="true"></div>
+
     <!-- ======================================================================
          Sidebar Navigation
          ====================================================================== -->
@@ -331,7 +334,7 @@
               </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: 2fr 1.5fr auto auto auto; gap: var(--space-md); align-items: end;">
+            <div class="live-capture-controls-grid">
               <div>
                 <label style="display: block; font-size: 12.5px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">
                   Network Interface (Authorized Capture Target):
@@ -408,8 +411,51 @@
             </div>
           </div>
 
+          <!-- Live Telemetry & Behavioral Analytics Charts Grid -->
+          <div class="card" style="margin-bottom: var(--space-lg);">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+              <span class="card-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                </svg>
+                Real-Time Behavioral Telemetry &amp; Anomaly Streaming Charts
+              </span>
+              <span class="badge badge-blue" id="liveTelemetryTimestamp">Awaiting capture session</span>
+            </div>
+            <p class="card-description">
+              Live data-driven telemetry streaming directly from passive packet sniffing and dual-model inference. Graphs update dynamically as completed flows arrive.
+            </p>
+            <div class="grid-2" style="gap: var(--space-md); margin-bottom: var(--space-md);">
+              <div class="chart-card">
+                <div id="liveTrafficVolumeChart" class="chart-box"></div>
+              </div>
+              <div class="chart-card">
+                <div id="liveVaeScoreChart" class="chart-box"></div>
+              </div>
+            </div>
+            <div class="grid-2" style="gap: var(--space-md);">
+              <div class="chart-card">
+                <div class="chart-header-row">
+                  <span class="chart-title-sm">Observed Transport Layer Protocols</span>
+                  <span class="badge badge-slate">Real Flow Telemetry</span>
+                </div>
+                <div id="liveProtocolChart" class="chart-box"></div>
+              </div>
+              <div class="chart-card">
+                <div class="chart-header-row">
+                  <span class="chart-title-sm">Top Suspicious Flows (Risk-Ranked)</span>
+                  <span class="badge badge-warning">Privacy-Protected</span>
+                </div>
+                <div id="liveTopSuspiciousContainer" style="overflow-x: auto; max-height: 240px;">
+                  <div class="chart-empty-state"><p>No suspicious flows detected yet.</p></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Model Thresholds & Criteria Reference Card -->
           <div class="card" style="margin-bottom: var(--space-lg); background: var(--bg-surface);">
+
             <div class="card-header">
               <span class="card-title">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -537,10 +583,10 @@
             </div>
 
             <!-- One-Click Sample Ingestion -->
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: var(--space-md); padding-top: var(--space-md); border-top: 1px solid var(--border-light); flex-wrap: wrap; gap: 8px;">
-              <div>
-                <span style="font-weight: 600; font-size: 13.5px; color: var(--text-primary);">Need test data immediately?</span>
-                <span style="font-size: 13px; color: var(--text-muted); margin-left: 6px;">Load authentic CICIDS2017 test-set flows with 1 click:</span>
+            <div class="sample-ingestion-row">
+              <div class="sample-ingestion-text">
+                <span class="sample-ingestion-title">Need test data immediately?</span>
+                <span class="sample-ingestion-desc">Load authentic CICIDS2017 test-set flows with 1 click:</span>
               </div>
               <button class="btn btn-outline-blue btn-sm" id="loadSampleCsvBtn">Load Sample CICIDS2017 CSV (100 Flows)</button>
             </div>
@@ -557,7 +603,7 @@
                   <div class="file-meta-size" id="uploadFileSize">-</div>
                 </div>
               </div>
-              <div style="display: flex; align-items: center; gap: 12px;">
+              <div class="file-meta-actions">
                 <span class="badge badge-slate" id="uploadStatusBadge">Validating schema...</span>
                 <button class="btn btn-secondary btn-sm" id="clearUploadBtn">Clear</button>
               </div>
@@ -601,6 +647,11 @@
                 <span class="kpi-value" style="font-size: 16px; margin-top: 6px;" id="previewNullCount">-</span>
                 <span class="kpi-subtext">Handled via learned median values</span>
               </div>
+            </div>
+
+            <!-- Ground-Truth Distribution / Schema Quality Audit Card -->
+            <div id="trafficFamilyCard" style="display: none; margin-bottom: var(--space-md); border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 16px; background: white;">
+              <div id="trafficFamilyDistributionChart" class="chart-box"></div>
             </div>
 
             <div class="table-container">
@@ -692,9 +743,30 @@
               </div>
             </div>
 
+            <!-- Dynamic Live Inference Charts Grid -->
+            <div style="margin-bottom: var(--space-lg);">
+              <div class="grid-2" style="gap: var(--space-md); margin-bottom: var(--space-md);">
+                <div class="chart-card">
+                  <div id="csvPredictionDistributionChart" class="chart-box"></div>
+                </div>
+                <div class="chart-card">
+                  <div id="csvAnomalyScoreChart" class="chart-box"></div>
+                </div>
+              </div>
+              <div class="grid-2" style="gap: var(--space-md);">
+                <div class="chart-card">
+                  <div id="csvModelDisagreementChart" class="chart-box"></div>
+                </div>
+                <div class="chart-card" id="csvGroundTruthCard">
+                  <div id="csvGroundTruthEvaluation" class="chart-box"></div>
+                </div>
+              </div>
+            </div>
+
+
             <!-- Filters & Search Bar -->
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-md); gap: 16px; flex-wrap: wrap;">
-              <div style="display: flex; align-items: center; gap: 8px;">
+            <div class="table-filter-bar">
+              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                 <label for="filterPredictions" style="font-size: 13px; font-weight: 500; color: var(--text-secondary);">Filter:</label>
                 <select id="filterPredictions" style="padding: 6px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-light); font-size: 13px; background: white;">
                   <option value="all">Show All Flows</option>
@@ -704,8 +776,8 @@
                 </select>
               </div>
 
-              <div style="display: flex; align-items: center; gap: 8px;">
-                <input type="text" id="searchPredictions" placeholder="Search by flow # or original label..." style="padding: 6px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-light); font-size: 13px; width: 260px;">
+              <div style="display: flex; align-items: center; gap: 8px; flex: 1 1 260px; max-width: 380px;">
+                <input type="text" id="searchPredictions" placeholder="Search by flow # or original label..." style="padding: 6px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-light); font-size: 13px; width: 100%;">
               </div>
             </div>
 
@@ -811,24 +883,36 @@
             <div id="distributionShiftChart" class="chart-box"></div>
           </div>
 
-          <!-- Authentic Research Figures Carousel/Gallery -->
+          <!-- Authentic Empirical Evaluation Curves & Matrices (Live Data-Driven) -->
           <div class="card">
-            <div class="card-header">
-              <span class="card-title">Authentic Generated Research Figures</span>
-              <span class="badge badge-slate">Saved Artifacts</span>
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+              <span class="card-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M18 20V10"/>
+                  <path d="M12 20V4"/>
+                  <path d="M6 20v-4"/>
+                </svg>
+                Figure 2 &amp; 3: Empirical Statistical Evaluation (Live Data-Driven)
+              </span>
+              <span class="badge badge-green">Calculated from Master Experiment Results</span>
             </div>
-            <div class="grid-2" style="gap: var(--space-md);">
-              <div style="border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 12px; background: white;">
-                <h4 style="font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-primary);">Figure 2: ROC & Precision-Recall Curves</h4>
-                <img src="/figures/fig2_roc_pr_curves.png" alt="Figure 2: ROC and Precision-Recall Curves" style="width: 100%; height: auto; border-radius: var(--radius-sm);" loading="lazy">
+            <p class="card-description">
+              Interactive data-driven evaluation curves and confusion matrix heatmaps calculated directly from the authentic CICIDS2017 test evaluation artifacts. Original high-resolution publication PNGs remain downloadable as research artifacts.
+            </p>
+            <div class="grid-2" style="gap: var(--space-md); margin-bottom: var(--space-md);">
+              <div class="chart-card">
+                <div id="rocCurveChart" class="chart-box"></div>
               </div>
-              <div style="border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 12px; background: white;">
-                <h4 style="font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-primary);">Figure 3: Confusion Matrices (XGBoost vs VAE)</h4>
-                <img src="/figures/fig3_confusion_matrices.png" alt="Figure 3: Confusion Matrices" style="width: 100%; height: auto; border-radius: var(--radius-sm);" loading="lazy">
+              <div class="chart-card">
+                <div id="prCurveChart" class="chart-box"></div>
               </div>
+            </div>
+            <div class="chart-card">
+              <div id="confusionMatrixChart" class="chart-box"></div>
             </div>
           </div>
         </section>
+
 
         <!-- ==================================================================
              SECTION 5: UNSEEN ATTACK EVALUATION
@@ -963,7 +1047,13 @@
             </div>
           </div>
 
+          <!-- Live Dataset Distribution Chart (Figure 1) -->
+          <div class="card" style="margin-bottom: var(--space-xl);">
+            <div id="datasetDistributionChart" class="chart-box"></div>
+          </div>
+
           <!-- Quality Audit Details Card -->
+
           <div class="card">
             <div class="card-header">
               <span class="card-title">Dataset Integrity & Leakage Controls Audit</span>

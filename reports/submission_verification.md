@@ -3,7 +3,7 @@
 **Target Package Location:** `C:\Users\Santhoskrishna\Documents\Cognisec_AI_Submission`  
 **Verification Timestamp:** October 2026  
 **Auditor:** Santhoskrishna / Cognisec AI Automated Audit Suite  
-**Total Cataloged Package Files:** 111 files  
+**Total Cataloged Package Files:** 100 files  
 
 ---
 
@@ -29,7 +29,7 @@ The submission package conforms strictly to the academic research submission gui
 | **Models** | `models/vae_checkpoint.pt` | 74,453 | `3e824e46a29b739e...8820c0e7` |
 | **Models** | `models/flow_preprocessor.joblib` | 4,838 | `a9bc7f32ce1806a1...d82e22cf` |
 | **Results** | `results/master_experiment_results.json` | 9,439 | `e8b676a1eeb0cb8c...a1cdc601` |
-| **Viva** | `viva/Cognisec_AI_Viva.pptx` | 529,909 | `a63f52092e9a2f2c...7b22d089` |
+| **Viva** | `viva/Cognisec_AI_Viva.pptx` | 529,858 | `6ba5eaa68117080c...f126a0b3` |
 | **Viva** | `viva/speaker_notes.md` | 15,911 | `9ad745868b1d2dd5...1570cb49` |
 | **Viva** | `viva/viva_questions_and_answers.md` | 24,741 | `34aed63a2f9c42c4...934a8425` |
 | **Reports** | `reports/academic_report.md` | 21,421 | `d1469ff5bce1f1a9...8cdd8d87` |
@@ -37,9 +37,8 @@ The submission package conforms strictly to the academic research submission gui
 | **Reports** | `reports/statistical_validation.md` | 4,953 | `8af4467b248d1c2d...94797e23` |
 | **Reports** | `reports/screenshots/01_dashboard.png` | 161,358 | `ce1ab2ad393eacda...fe31127e` |
 | **Reports** | `reports/screenshots/05_model_comparison.png` | 148,154 | `7a319894a4166eaf...78d29a7c` |
-| **Data** | `data/processed/test_data.npz` | 38,594,631 | `1df3ac5a8fd103a0...9f4f8128` |
 | **Source** | `source/server.py` | 5,708 | `f07816509827d5c6...9c6c728e` |
-| **Source** | `source/requirements.txt` | 220 | `94affdeb8d7473b9...d7e10e65` |
+| **Source** | `source/requirements.txt` | 233 | `470f1e66d3643c7d...fea5be17` |
 
 ---
 

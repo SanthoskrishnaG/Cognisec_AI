@@ -470,6 +470,197 @@ class LiveCaptureManager:
             items = list(self.flow_buffer)[::-1]
             return items[offset: offset + limit]
 
+    def get_live_analytics(self, max_points: int = 60) -> Dict[str, Any]:
+        """
+        Calculates dynamic, bounded live chart analytics from actual captured flows.
+        Returns empty state structures when no traffic has arrived, with zero simulated data.
+        """
+        with self._lock:
+            buffer_items = list(self.flow_buffer)
+            running = self.is_running
+            pkts = self.packets_seen
+            flows_count = self.flows_processed
+            benign = self.benign_count
+            suspicious = self.suspicious_count
+            uptime = 0.0
+            if self.is_running and self.started_at:
+                uptime = time.time() - self.started_at
+            elif self.started_at and self.stopped_at:
+                uptime = self.stopped_at - self.started_at
+
+        xgb_thresh = 0.52
+        vae_thresh = 0.330610
+
+        if not buffer_items:
+            return {
+                "has_traffic": False,
+                "is_running": running,
+                "uptime_seconds": round(uptime, 1),
+                "total_flows": flows_count,
+                "total_packets": pkts,
+                "traffic_volume_over_time": [],
+                "normal_vs_suspicious": {
+                    "normal": 0,
+                    "suspicious": 0,
+                    "normal_pct": 0.0,
+                    "suspicious_pct": 0.0
+                },
+                "model_detections": {
+                    "xgboost_attacks": 0,
+                    "vae_anomalies": 0,
+                    "both_flagged": 0
+                },
+                "vae_scores_over_time": [],
+                "protocol_distribution": {},
+                "top_suspicious_flows": [],
+                "model_disagreement_over_time": [],
+                "calibrated_thresholds": {
+                    "xgboost": xgb_thresh,
+                    "vae": vae_thresh
+                },
+                "last_updated": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            }
+
+        # Analyze actual captured flows
+        protocols = collections.Counter()
+        xgb_attacks = 0
+        vae_anomalies = 0
+        both_flagged = 0
+
+        time_buckets = collections.OrderedDict()
+
+        for item in buffer_items:
+            proto = str(item.get("protocol", "OTHER")).upper()
+            protocols[proto] += 1
+
+            is_xgb_atk = bool(item.get("xgboost", {}).get("is_attack", False))
+            is_vae_anom = bool(item.get("vae", {}).get("is_anomaly", False))
+
+            if is_xgb_atk:
+                xgb_attacks += 1
+            if is_vae_anom:
+                vae_anomalies += 1
+            if is_xgb_atk and is_vae_anom:
+                both_flagged += 1
+
+            ts_str = str(item.get("timestamp", ""))
+            bucket_key = ts_str[-8:-1] + "0" if len(ts_str) >= 8 else "00:00:00"
+            if bucket_key not in time_buckets:
+                time_buckets[bucket_key] = {
+                    "time": bucket_key,
+                    "flows": 0,
+                    "packets": 0,
+                    "bytes": 0,
+                    "suspicious": 0,
+                    "normal": 0,
+                    "xgb_attacks": 0,
+                    "vae_anomalies": 0,
+                    "agreed": 0,
+                    "disagreed": 0
+                }
+
+            b = time_buckets[bucket_key]
+            b["flows"] += 1
+            b["packets"] += int(item.get("total_packets", 1))
+            b["bytes"] += int(item.get("total_bytes", 0))
+
+            if is_xgb_atk or is_vae_anom:
+                b["suspicious"] += 1
+            else:
+                b["normal"] += 1
+
+            if is_xgb_atk:
+                b["xgb_attacks"] += 1
+            if is_vae_anom:
+                b["vae_anomalies"] += 1
+
+            if (is_xgb_atk and is_vae_anom) or (not is_xgb_atk and not is_vae_anom):
+                b["agreed"] += 1
+            else:
+                b["disagreed"] += 1
+
+        recent_bucket_keys = list(time_buckets.keys())[-max_points:]
+        traffic_volume = [time_buckets[k] for k in recent_bucket_keys]
+
+        vae_scores_stream = []
+        for flow in buffer_items[-30:]:
+            vae_info = flow.get("vae", {})
+            score = float(vae_info.get("anomaly_score", 0.0))
+            vae_scores_stream.append({
+                "time": str(flow.get("timestamp", ""))[-8:],
+                "score": round(score, 6),
+                "is_anomaly": bool(vae_info.get("is_anomaly", False)),
+                "flow_id": flow.get("flow_id", "flow")
+            })
+
+        scored_flows = []
+        for flow in buffer_items:
+            xgb_p = float(flow.get("xgboost", {}).get("probability", 0.0))
+            vae_s = float(flow.get("vae", {}).get("anomaly_score", 0.0))
+            norm_vae = vae_s / max(vae_thresh, 1e-6)
+            risk = max(xgb_p, min(1.0, norm_vae))
+            scored_flows.append((risk, flow))
+
+        scored_flows.sort(key=lambda x: x[0], reverse=True)
+        top_suspicious = []
+        for risk, flow in scored_flows[:10]:
+            src = f"{flow.get('src_ip')}:{flow.get('src_port')}"
+            dst = f"{flow.get('dst_ip')}:{flow.get('dst_port')}"
+            top_suspicious.append({
+                "flow_id": flow.get("flow_id"),
+                "timestamp": flow.get("timestamp"),
+                "source": src,
+                "destination": dst,
+                "protocol": flow.get("protocol"),
+                "packets": flow.get("total_packets"),
+                "bytes": flow.get("total_bytes"),
+                "xgb_prob": flow.get("xgboost", {}).get("probability"),
+                "vae_score": flow.get("vae", {}).get("anomaly_score"),
+                "decision": flow.get("joint_decision"),
+                "risk_score": round(risk, 4),
+                "is_suspicious": flow.get("is_suspicious", False)
+            })
+
+        norm_pct = round((benign / max(flows_count, 1)) * 100, 2)
+        susp_pct = round((suspicious / max(flows_count, 1)) * 100, 2)
+
+        return {
+            "has_traffic": True,
+            "is_running": running,
+            "uptime_seconds": round(uptime, 1),
+            "total_flows": flows_count,
+            "total_packets": pkts,
+            "traffic_volume_over_time": traffic_volume,
+            "normal_vs_suspicious": {
+                "normal": benign,
+                "suspicious": suspicious,
+                "normal_pct": norm_pct,
+                "suspicious_pct": susp_pct
+            },
+            "model_detections": {
+                "xgboost_attacks": xgb_attacks,
+                "vae_anomalies": vae_anomalies,
+                "both_flagged": both_flagged
+            },
+            "vae_scores_over_time": vae_scores_stream,
+            "protocol_distribution": dict(protocols),
+            "top_suspicious_flows": top_suspicious,
+            "model_disagreement_over_time": [
+                {
+                    "time": b["time"],
+                    "agreed": b["agreed"],
+                    "disagreed": b["disagreed"]
+                }
+                for b in traffic_volume
+            ],
+            "calibrated_thresholds": {
+                "xgboost": xgb_thresh,
+                "vae": vae_thresh
+            },
+            "last_updated": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        }
+
+
 
 # Global singleton instance
 _GLOBAL_LIVE_MANAGER: Optional[LiveCaptureManager] = None

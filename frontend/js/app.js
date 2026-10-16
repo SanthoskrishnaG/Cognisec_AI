@@ -27,6 +27,28 @@ document.addEventListener('DOMContentLoaded', () => {
   const statusDot = document.getElementById('statusDot');
   const menuToggleBtn = document.getElementById('menuToggleBtn');
   const sidebar = document.getElementById('sidebar');
+  const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+
+  function closeSidebar() {
+    if (sidebar && sidebar.classList.contains('open')) {
+      sidebar.classList.remove('open');
+    }
+    if (sidebarBackdrop && sidebarBackdrop.classList.contains('active')) {
+      sidebarBackdrop.classList.remove('active');
+    }
+  }
+
+  function toggleSidebar() {
+    if (!sidebar) return;
+    const isOpen = sidebar.classList.toggle('open');
+    if (sidebarBackdrop) {
+      if (isOpen) {
+        sidebarBackdrop.classList.add('active');
+      } else {
+        sidebarBackdrop.classList.remove('active');
+      }
+    }
+  }
 
   // --------------------------------------------------------------------------
   // Navigation & View Routing
@@ -53,10 +75,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    // Close mobile sidebar
-    if (sidebar && sidebar.classList.contains('open')) {
-      sidebar.classList.remove('open');
-    }
+    // Close mobile sidebar drawer
+    closeSidebar();
 
     // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -78,10 +98,21 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   if (menuToggleBtn) {
-    menuToggleBtn.addEventListener('click', () => {
-      sidebar.classList.toggle('open');
+    menuToggleBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleSidebar();
     });
   }
+
+  if (sidebarBackdrop) {
+    sidebarBackdrop.addEventListener('click', closeSidebar);
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeSidebar();
+    }
+  });
 
   // Quick navigation buttons in overview cards
   document.querySelectorAll('[data-goto]').forEach(btn => {
@@ -127,6 +158,19 @@ document.addEventListener('DOMContentLoaded', () => {
       AppState.comparison = await API.getComparison();
       renderModelComparisonPage(AppState.comparison);
       renderUnseenAttacksPage(AppState.comparison);
+
+      // 4. Research figures (data-driven SVG evaluation figures)
+      try {
+        AppState.researchFigures = await API.getResearchFigures();
+      } catch (rfErr) {
+        console.warn('Research figures API fallback:', rfErr);
+      }
+
+      // Initial chart rendering
+      renderComparisonCharts();
+      if (AppState.metadata) {
+        renderDatasetExperimentsPage(AppState.metadata);
+      }
 
       // Render system info
       renderSystemInfoPage(AppState.healthData, AppState.metadata);
@@ -277,9 +321,12 @@ document.addEventListener('DOMContentLoaded', () => {
       AppState.activeCsvData = null;
       AppState.previewResult = null;
       AppState.inferenceResult = null;
+      AppState.activeCsvAnalytics = null;
       if (fileInput) fileInput.value = '';
       if (uploadMetaBar) uploadMetaBar.style.display = 'none';
       if (previewCard) previewCard.style.display = 'none';
+      const trafficFamilyCard = document.getElementById('trafficFamilyCard');
+      if (trafficFamilyCard) trafficFamilyCard.style.display = 'none';
       resetInferenceResultsUI();
       showToast('Cleared active upload.', 'info');
     });
@@ -308,6 +355,22 @@ document.addEventListener('DOMContentLoaded', () => {
       renderPreviewTable(result);
 
       if (previewCard) previewCard.style.display = 'block';
+
+      // Fetch dynamic analytics for the previewed CSV
+      try {
+        const analyticsRes = await API.getCsvAnalytics(data);
+        if (analyticsRes && analyticsRes.data) {
+          const analytics = analyticsRes.data;
+          AppState.activeCsvAnalytics = analytics;
+          const familyCard = document.getElementById('trafficFamilyCard');
+          if (familyCard) {
+            familyCard.style.display = 'block';
+            Charts.renderTrafficFamilyDistribution('trafficFamilyDistributionChart', analytics.family_distribution, analytics.has_ground_truth);
+          }
+        }
+      } catch (anErr) {
+        console.warn('CSV analytics calculation notice:', anErr);
+      }
 
       // Enable inference buttons in Section 3
       updateInferenceButtonsState(true);
@@ -435,6 +498,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
       renderInferenceMetrics(res, mode);
       renderInferenceTable(res, mode);
+
+      // Render dynamic inference charts
+      const analyticsPayload = res.analytics || AppState.activeCsvAnalytics;
+      if (analyticsPayload) {
+        renderCsvInferenceCharts(analyticsPayload);
+      } else {
+        // Query analytics on demand if not present
+        try {
+          const fetchedAnalytics = await API.getCsvAnalytics(dataPayload);
+          if (fetchedAnalytics && fetchedAnalytics.data) {
+            AppState.activeCsvAnalytics = fetchedAnalytics.data;
+            renderCsvInferenceCharts(fetchedAnalytics.data);
+          }
+        } catch (fErr) {
+          console.warn('Could not fetch inference analytics:', fErr);
+        }
+      }
 
       if (resultsCard) resultsCard.style.display = 'block';
       showToast(`${mode.toUpperCase()} analysis complete on ${res.total_flows} flows.`, 'success');
@@ -697,6 +777,74 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 3. Distribution shift
     Charts.renderDistributionShiftChart('distributionShiftChart', AppState.comparison.distribution_shift);
+
+    // 4. ROC & PR Curves (Figure 2 Panel A & B)
+    const fig2Data = (AppState.researchFigures && AppState.researchFigures.data && AppState.researchFigures.data.fig2_roc_pr) || AppState.comparison;
+    Charts.renderRocCurves('rocCurveChart', fig2Data);
+    Charts.renderPrCurves('prCurveChart', fig2Data);
+
+    // 5. Confusion Matrices (Figure 3)
+    const fig3Data = (AppState.researchFigures && AppState.researchFigures.data && AppState.researchFigures.data.fig3_confusion_matrix) || AppState.comparison.confusion_matrix;
+    Charts.renderConfusionMatrices('confusionMatrixChart', fig3Data);
+  }
+
+  function renderCsvInferenceCharts(analytics) {
+    if (!analytics) return;
+
+    // 1. Prediction distribution
+    Charts.renderPredictionDistribution('csvPredictionDistributionChart', analytics.prediction_distribution);
+
+    // 2. Anomaly score distribution with calibrated threshold
+    const thresh = (analytics.anomaly_score_distribution && analytics.anomaly_score_distribution.calibrated_threshold) || 0.330610;
+    Charts.renderAnomalyScoreDistribution('csvAnomalyScoreChart', analytics.anomaly_score_distribution, thresh);
+
+    // 3. Model disagreement
+    Charts.renderModelDisagreement('csvModelDisagreementChart', analytics.model_disagreement);
+
+    // 4. Ground-truth evaluation if available, or clear "Ground truth unavailable" card
+    const gtContainer = document.getElementById('csvGroundTruthEvaluation');
+    if (gtContainer) {
+      if (analytics.has_ground_truth && analytics.ground_truth_evaluation) {
+        const gt = analytics.ground_truth_evaluation;
+        const xgbMetrics = gt.xgboost_metrics || {};
+        const vaeMetrics = gt.vae_metrics || {};
+        gtContainer.innerHTML = `
+          <div class="chart-header-row">
+            <span class="chart-title-sm">Empirical Ground-Truth Evaluation</span>
+            <span class="badge badge-green">Verified Labels Present</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; font-size: 12px;">
+            <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 4px; padding: 10px;">
+              <strong style="color: #1e40af; display: block; margin-bottom: 6px;">XGBoost (Supervised)</strong>
+              <div>Precision: <strong>${(xgbMetrics.precision * 100).toFixed(2)}%</strong></div>
+              <div>Recall: <strong>${(xgbMetrics.recall * 100).toFixed(2)}%</strong></div>
+              <div>F1-Score: <strong>${(xgbMetrics.f1 * 100).toFixed(2)}%</strong></div>
+              <div>FPR: <strong>${(xgbMetrics.fpr * 100).toFixed(2)}%</strong></div>
+            </div>
+            <div style="background: #faf5ff; border: 1px solid #e9d5ff; border-radius: 4px; padding: 10px;">
+              <strong style="color: #6b21a8; display: block; margin-bottom: 6px;">Tabular VAE (Anomaly)</strong>
+              <div>Precision: <strong>${(vaeMetrics.precision * 100).toFixed(2)}%</strong></div>
+              <div>Recall: <strong>${(vaeMetrics.recall * 100).toFixed(2)}%</strong></div>
+              <div>F1-Score: <strong>${(vaeMetrics.f1 * 100).toFixed(2)}%</strong></div>
+              <div>FPR: <strong>${(vaeMetrics.fpr * 100).toFixed(2)}%</strong></div>
+            </div>
+          </div>
+        `;
+      } else {
+        gtContainer.innerHTML = `
+          <div class="chart-header-row">
+            <span class="chart-title-sm">Ground-Truth Evaluation</span>
+            <span class="badge badge-slate">Unlabeled Dataset</span>
+          </div>
+          <div class="chart-empty-state" style="padding: 16px;">
+            <div style="font-weight: 600; color: #475569; margin-bottom: 4px;">Ground Truth Unavailable</div>
+            <div style="font-size: 12px; color: #64748b; line-height: 1.4;">
+              This dataset does not contain verified ground-truth labels. Metrics such as Precision, Recall, F1, and False-Positive Rate are not fabricated for unverified data.
+            </div>
+          </div>
+        `;
+      }
+    }
   }
 
   // --------------------------------------------------------------------------
@@ -769,6 +917,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (trainTotalEl) trainTotalEl.textContent = `${trainSum.total?.toLocaleString()} (60%)`;
     if (valTotalEl) valTotalEl.textContent = `${valSum.total?.toLocaleString()} (20%)`;
     if (testTotalEl) testTotalEl.textContent = `${testSum.total?.toLocaleString()} (20%)`;
+
+    // Render Live Dataset Distribution Chart (Figure 1)
+    const fig1Data = (AppState.researchFigures && AppState.researchFigures.data && AppState.researchFigures.data.fig1_dataset_distribution) || meta.family_distribution || meta.dataset_distribution;
+    if (fig1Data) {
+      Charts.renderDatasetDistribution('datasetDistributionChart', fig1Data);
+    }
 
     // Partition distributions table
     const tableBody = document.getElementById('partitionTableBody');

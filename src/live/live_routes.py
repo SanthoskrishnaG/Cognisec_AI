@@ -115,3 +115,15 @@ def clear_buffer():
         "status": "success",
         "message": "Live monitoring buffer and statistics cleared successfully."
     })
+
+
+@live_bp.route("/analytics", methods=["GET"])
+def get_live_analytics():
+    """Retrieve dynamic aggregated live monitoring chart analytics."""
+    mgr = get_live_manager()
+    analytics_data = mgr.get_live_analytics()
+    return jsonify({
+        "status": "success",
+        "data": analytics_data
+    })
+
