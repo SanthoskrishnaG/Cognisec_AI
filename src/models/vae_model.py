@@ -1,12 +1,13 @@
 import json
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
+from src.utils.device import get_device
 
 class TabularVAE(nn.Module):
     """
@@ -98,9 +99,9 @@ class VAETrainer:
         beta_kl: float = 0.005,
         learning_rate: float = 0.001,
         weight_decay: float = 1e-5,
-        device: str = "cpu"
+        device: Optional[Union[str, torch.device]] = None
     ):
-        self.device = torch.device(device if (device == "cuda" and torch.cuda.is_available()) else "cpu")
+        self.device = get_device(device)
         self.model = model.to(self.device)
         self.beta_kl = beta_kl
         self.learning_rate = learning_rate
@@ -108,6 +109,12 @@ class VAETrainer:
         self.loss_history = {"train_loss": [], "val_loss": [], "train_recon": [], "train_kl": []}
         self.threshold: float = 0.0
         self.target_fpr: float = 1.0
+
+    def to(self, device: Union[str, torch.device]) -> "VAETrainer":
+        """Move the VAE model and trainer to the specified target device."""
+        self.device = get_device(device)
+        self.model.to(self.device)
+        return self
 
     def compute_loss(
         self,
@@ -212,20 +219,29 @@ class VAETrainer:
             "training_duration_seconds": round(training_duration, 3)
         }
 
-    def compute_anomaly_scores(self, X: np.ndarray, batch_size: int = 1024) -> np.ndarray:
+    def compute_anomaly_scores(self, X: Union[np.ndarray, torch.Tensor], batch_size: int = 1024) -> np.ndarray:
         """
         Computes sample-wise mean squared reconstruction error as anomaly score.
         Score = (1 / D) * sum((x_i - x_recon_i)^2)
+        Executes on configured device (CUDA or CPU) with inference_mode and no gradient building.
         """
         self.model.eval()
-        scores = []
-        tensor_x = torch.tensor(X, dtype=torch.float32)
-        dataset = TensorDataset(tensor_x)
-        loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
 
-        with torch.no_grad():
-            for (batch_x,) in loader:
-                batch_x = batch_x.to(self.device)
+        if isinstance(X, torch.Tensor):
+            tensor_x = X.detach()
+        else:
+            tensor_x = torch.as_tensor(X, dtype=torch.float32)
+
+        total_samples = tensor_x.shape[0]
+        if total_samples == 0:
+            return np.array([], dtype=np.float32)
+
+        scores = []
+        with torch.inference_mode():
+            for i in range(0, total_samples, batch_size):
+                batch_x = tensor_x[i : i + batch_size]
+                if batch_x.device != self.device:
+                    batch_x = batch_x.to(self.device)
                 recon, _, _ = self.model(batch_x)
                 # Feature-wise squared errors
                 sq_errors = torch.mean((batch_x - recon) ** 2, dim=1)
@@ -268,9 +284,10 @@ class VAETrainer:
         }, str(path))
 
     @classmethod
-    def load_checkpoint(cls, filepath: str, device: str = "cpu") -> "VAETrainer":
+    def load_checkpoint(cls, filepath: str, device: Optional[Union[str, torch.device]] = None) -> "VAETrainer":
         path = Path(filepath)
-        checkpoint = torch.load(str(path), map_location=device)
+        target_device = get_device(device)
+        checkpoint = torch.load(str(path), map_location=target_device)
         model = TabularVAE(
             input_dim=checkpoint["input_dim"],
             latent_dim=checkpoint["latent_dim"],
@@ -278,7 +295,8 @@ class VAETrainer:
             decoder_hidden_dims=checkpoint["decoder_hidden_dims"]
         )
         model.load_state_dict(checkpoint["model_state_dict"])
-        trainer = cls(model=model, beta_kl=checkpoint.get("beta_kl", 0.005), device=device)
+        trainer = cls(model=model, beta_kl=checkpoint.get("beta_kl", 0.005), device=target_device)
+        trainer.model.eval()
         trainer.threshold = checkpoint.get("threshold", 0.0)
         trainer.target_fpr = checkpoint.get("target_fpr", 1.0)
         return trainer

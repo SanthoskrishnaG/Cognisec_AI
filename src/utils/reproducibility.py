@@ -17,10 +17,11 @@ def set_seed(seed: int = 42) -> None:
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
 
-def get_device(preferred_device: str = "cuda") -> torch.device:
-    """
-    Get torch device with CPU fallback.
-    """
-    if preferred_device == "cuda" and torch.cuda.is_available():
-        return torch.device("cuda")
-    return torch.device("cpu")
+from src.utils.device import (
+    get_device,
+    get_device_str,
+    get_device_info,
+    get_xgboost_device,
+    is_cuda_available,
+    clear_gpu_memory,
+)

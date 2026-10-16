@@ -73,7 +73,7 @@ st.markdown("""
 def load_saved_models():
     preprocessor = joblib.load("artifacts/models/flow_preprocessor.joblib")
     xgb_wrapper = XGBoostClassifierWrapper().load("artifacts/models/xgboost_model.json")
-    vae_trainer = VAETrainer.load_checkpoint("artifacts/models/vae_checkpoint.pt", device="cpu")
+    vae_trainer = VAETrainer.load_checkpoint("artifacts/models/vae_checkpoint.pt")
     with open("results/master_experiment_results.json", "r", encoding="utf-8") as f:
         results = json.load(f)
     return preprocessor, xgb_wrapper, vae_trainer, results

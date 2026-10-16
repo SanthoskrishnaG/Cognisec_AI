@@ -150,7 +150,7 @@ def main():
     print(f"[*] Press Ctrl+C to terminate.")
     print("=" * 80)
 
-    app.run(host=args.host, port=args.port, debug=args.debug)
+    app.run(host=args.host, port=args.port, debug=args.debug, use_reloader=False, threaded=True)
 
 if __name__ == "__main__":
     main()

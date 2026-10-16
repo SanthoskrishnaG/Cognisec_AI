@@ -30,6 +30,7 @@ if str(BASE_DIR) not in sys.path:
 
 from src.models.xgboost_model import XGBoostClassifierWrapper
 from src.models.vae_model import TabularVAE, VAETrainer
+from src.utils.device import get_device_info, get_device, clear_gpu_memory
 
 def create_app() -> Flask:
     app = Flask(__name__, static_folder=str(FRONTEND_DIR))
@@ -297,7 +298,7 @@ def create_app() -> Flask:
         vae_path = ARTIFACTS_DIR / "vae_checkpoint.pt"
         if vae_path.exists():
             try:
-                models_state["vae_trainer"] = VAETrainer.load_checkpoint(str(vae_path), device="cpu")
+                models_state["vae_trainer"] = VAETrainer.load_checkpoint(str(vae_path))
             except Exception as e:
                 models_state["load_errors"]["vae"] = str(e)
         else:
@@ -329,6 +330,18 @@ def create_app() -> Flask:
                     models_state["partition_manifest"] = json.load(f)
             except Exception as e:
                 models_state["load_errors"]["partition_manifest"] = str(e)
+
+        # Share loaded models with LiveCaptureManager to avoid duplicate GPU/VRAM allocation
+        try:
+            from src.live.live_manager import get_live_manager
+            live_mgr = get_live_manager()
+            live_mgr.set_models(
+                preprocessor=models_state["preprocessor"],
+                xgb_wrapper=models_state["xgb_wrapper"],
+                vae_trainer=models_state["vae_trainer"]
+            )
+        except Exception:
+            pass
 
     # Load artifacts on start
     load_artifacts()
@@ -410,6 +423,7 @@ def create_app() -> Flask:
                     "loaded": xgb_wrapper is not None,
                     "threshold": float(xgb_wrapper.threshold) if xgb_wrapper else None,
                     "is_trained": getattr(xgb_wrapper, "is_trained", False) if xgb_wrapper else False,
+                    "device": getattr(xgb_wrapper, "device", "cpu") if xgb_wrapper else None,
                     "error": models_state["load_errors"].get("xgboost")
                 },
                 "vae": {
@@ -423,9 +437,20 @@ def create_app() -> Flask:
                 "python_version": sys.version.split()[0],
                 "torch_version": torch.__version__,
                 "device_available": "cuda" if torch.cuda.is_available() else "cpu",
+                "device_info": get_device_info(),
                 "hardware_target": "Offline Network Flow Analysis (CICIDS2017 Benchmark)"
             }
         })
+
+    @app.route("/api/system/device", methods=["GET"])
+    def get_system_device():
+        """Returns comprehensive diagnostic device info for VAE, XGBoost, and GPU memory."""
+        info = get_device_info()
+        vae_trainer = models_state.get("vae_trainer")
+        xgb_wrapper = models_state.get("xgb_wrapper")
+        info["vae_device"] = str(vae_trainer.device) if vae_trainer else None
+        info["xgboost_device"] = getattr(xgb_wrapper, "device", None) if xgb_wrapper else None
+        return jsonify(info)
 
     # -------------------------------------------------------------------------
     # API: Metadata & Audit Information

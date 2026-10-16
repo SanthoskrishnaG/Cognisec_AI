@@ -51,7 +51,7 @@ def train_vae_pipeline(
         beta_kl=train_cfg.get("beta_kl", 0.005),
         learning_rate=train_cfg.get("learning_rate", 0.001),
         weight_decay=train_cfg.get("weight_decay", 1e-5),
-        device=train_cfg.get("device", "cpu")
+        device=train_cfg.get("device", None)
     )
 
     train_summary = trainer.fit(

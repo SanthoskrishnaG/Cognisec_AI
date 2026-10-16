@@ -114,7 +114,7 @@ def run_master_experiments():
         decoder_hidden_dims=[32, 64],
         dropout_rate=0.1
     )
-    vae_trainer = VAETrainer(model=vae, beta_kl=0.005, learning_rate=0.001, device="cpu")
+    vae_trainer = VAETrainer(model=vae, beta_kl=0.005, learning_rate=0.001)
     vae_train_summary = vae_trainer.fit(
         X_train_benign=X_train_benign,
         X_val_benign=X_val_benign,

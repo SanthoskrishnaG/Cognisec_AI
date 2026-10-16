@@ -106,7 +106,7 @@ class LiveCaptureManager:
 
             self.preprocessor = joblib.load(prep_path)
             self.xgb_wrapper = XGBoostClassifierWrapper().load(str(xgb_path))
-            self.vae_trainer = VAETrainer.load_checkpoint(str(vae_path), device="cpu")
+            self.vae_trainer = VAETrainer.load_checkpoint(str(vae_path))
 
             self.models_loaded = True
             self.load_error = None
@@ -116,6 +116,16 @@ class LiveCaptureManager:
             self.load_error = str(e)
             logger.error(f"LiveCaptureManager: Failed to load models: {e}")
             return False
+
+    def set_models(self, preprocessor: Any, xgb_wrapper: Any, vae_trainer: Any) -> None:
+        """Inject existing loaded models to avoid duplicate GPU/RAM memory allocation."""
+        self.preprocessor = preprocessor
+        self.xgb_wrapper = xgb_wrapper
+        self.vae_trainer = vae_trainer
+        if preprocessor is not None and xgb_wrapper is not None and vae_trainer is not None:
+            self.models_loaded = True
+            self.load_error = None
+            logger.info("LiveCaptureManager: Models successfully injected from shared context.")
 
     # -------------------------------------------------------------------------
     # Interface Discovery & Diagnostics

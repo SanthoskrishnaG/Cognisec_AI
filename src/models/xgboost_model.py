@@ -1,10 +1,13 @@
 import json
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 import numpy as np
+import pandas as pd
+import torch
 import xgboost as xgb
 from sklearn.metrics import f1_score, precision_recall_curve
+from src.utils.device import get_xgboost_device
 
 class XGBoostClassifierWrapper:
     """
@@ -14,9 +17,11 @@ class XGBoostClassifierWrapper:
     def __init__(
         self,
         params: Optional[Dict[str, Any]] = None,
-        random_seed: int = 42
+        random_seed: int = 42,
+        device: Optional[str] = None
     ):
         self.random_seed = random_seed
+        self.device = get_xgboost_device(device)
         self.params = params or {
             "n_estimators": 200,
             "max_depth": 6,
@@ -24,16 +29,45 @@ class XGBoostClassifierWrapper:
             "subsample": 0.8,
             "colsample_bytree": 0.8,
             "tree_method": "hist",
+            "device": self.device,
             "objective": "binary:logistic",
             "eval_metric": "logloss",
             "random_state": self.random_seed,
             "n_jobs": -1
         }
-        self.model = xgb.XGBClassifier(**self.params)
+        if "device" not in self.params:
+            self.params["device"] = self.device
+
+        try:
+            self.model = xgb.XGBClassifier(**self.params)
+        except Exception:
+            # Fallback to CPU if params rejected device
+            self.device = "cpu"
+            self.params["device"] = "cpu"
+            self.model = xgb.XGBClassifier(**self.params)
+
         self.threshold: float = 0.50
         self.feature_names: List[str] = []
         self.training_duration_seconds: float = 0.0
         self.is_trained: bool = False
+
+    def to(self, device: str) -> "XGBoostClassifierWrapper":
+        """Relocate the model's booster to the specified device (cuda or cpu)."""
+        target = get_xgboost_device(device)
+        self.device = target
+        try:
+            self.model.set_params(device=target)
+            if hasattr(self.model, "get_booster"):
+                self.model.get_booster().set_param({"device": target})
+        except Exception:
+            self.device = "cpu"
+            self.model.set_params(device="cpu")
+            try:
+                if hasattr(self.model, "get_booster"):
+                    self.model.get_booster().set_param({"device": "cpu"})
+            except Exception:
+                pass
+        return self
 
     def train(
         self,
@@ -94,14 +128,42 @@ class XGBoostClassifierWrapper:
         }
         return summary
 
-    def predict_proba(self, X: np.ndarray) -> np.ndarray:
+    def predict_proba(self, X: Union[np.ndarray, pd.DataFrame, torch.Tensor]) -> np.ndarray:
         """
         Outputs attack probability for class 1.
+        Executes on configured device with automatic CPU fallback on runtime issues.
+        Ensures consistent input and booster device handling without DMatrix fallback warnings.
         """
         if not self.is_trained:
             raise RuntimeError("Model must be trained before calling predict_proba.")
-        probs = self.model.predict_proba(X)
-        return probs[:, 1]
+
+        # Standardize input to 2D float32 numpy array
+        if isinstance(X, pd.DataFrame):
+            X_arr = X.values.astype(np.float32)
+        elif isinstance(X, torch.Tensor):
+            X_arr = X.detach().cpu().numpy().astype(np.float32)
+        else:
+            X_arr = np.asarray(X, dtype=np.float32)
+
+        if getattr(self, "device", "cpu") == "cuda":
+            try:
+                dmat = xgb.DMatrix(X_arr)
+                probs = self.model.get_booster().predict(dmat)
+                return probs
+            except Exception:
+                # Graceful CPU fallback
+                self.device = "cpu"
+                try:
+                    self.model.set_params(device="cpu")
+                    if hasattr(self.model, "get_booster"):
+                        self.model.get_booster().set_param({"device": "cpu"})
+                except Exception:
+                    pass
+                probs = self.model.predict_proba(X_arr)
+                return probs[:, 1]
+        else:
+            probs = self.model.predict_proba(X_arr)
+            return probs[:, 1]
 
     def predict(self, X: np.ndarray, threshold: Optional[float] = None) -> np.ndarray:
         """
@@ -130,12 +192,27 @@ class XGBoostClassifierWrapper:
         with open(meta_path, "w", encoding="utf-8") as f:
             json.dump(meta, f, indent=4)
 
-    def load(self, filepath: str) -> "XGBoostClassifierWrapper":
+    def load(self, filepath: str, device: Optional[str] = None) -> "XGBoostClassifierWrapper":
         """
-        Loads saved model and metadata.
+        Loads saved model and metadata, configuring target execution device.
         """
         path = Path(filepath)
         self.model.load_model(str(path))
+        target_dev = get_xgboost_device(device)
+        self.device = target_dev
+        try:
+            self.model.set_params(device=target_dev)
+            if hasattr(self.model, "get_booster"):
+                self.model.get_booster().set_param({"device": target_dev})
+        except Exception:
+            self.device = "cpu"
+            self.model.set_params(device="cpu")
+            try:
+                if hasattr(self.model, "get_booster"):
+                    self.model.get_booster().set_param({"device": "cpu"})
+            except Exception:
+                pass
+
         meta_path = path.with_suffix(".meta.json")
         if meta_path.exists():
             with open(meta_path, "r", encoding="utf-8") as f:
