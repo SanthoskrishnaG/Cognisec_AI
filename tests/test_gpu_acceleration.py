@@ -155,3 +155,62 @@ def test_shared_model_injection_in_live_manager():
     assert mgr.preprocessor == dummy_preprocessor
     assert mgr.xgb_wrapper == dummy_xgb
     assert mgr.vae_trainer == dummy_vae
+
+
+def test_xgboost_input_consistency_and_zero_warnings():
+    """Verify XGBoost prediction consistency across input types with zero warnings."""
+    import warnings
+    import pandas as pd
+    prod_xgb = Path("artifacts/models/xgboost_model.json")
+    if not prod_xgb.exists():
+        pytest.skip("Production XGBoost model not found")
+
+    xgb_cpu = XGBoostClassifierWrapper().load(str(prod_xgb), device="cpu")
+    X_arr = np.random.randn(25, 70).astype(np.float32)
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        p_np = xgb_cpu.predict_proba(X_arr)
+        p_df = xgb_cpu.predict_proba(pd.DataFrame(X_arr))
+        p_torch = xgb_cpu.predict_proba(torch.from_numpy(X_arr))
+
+    assert np.allclose(p_np, p_df, atol=1e-5)
+    assert np.allclose(p_np, p_torch, atol=1e-5)
+
+    if is_cuda_available():
+        xgb_gpu = XGBoostClassifierWrapper().load(str(prod_xgb), device="cuda")
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            p_gpu = xgb_gpu.predict_proba(X_arr)
+        assert np.allclose(p_np, p_gpu, atol=1e-4)
+
+
+def test_multibatch_prediction_consistency():
+    """Verify numerical consistency between CPU and GPU across batch sizes 1, 50, 500, 5000."""
+    if not is_cuda_available():
+        pytest.skip("Requires CUDA GPU")
+
+    prod_vae = Path("artifacts/models/vae_checkpoint.pt")
+    prod_xgb = Path("artifacts/models/xgboost_model.json")
+    if not prod_vae.exists() or not prod_xgb.exists():
+        pytest.skip("Production model artifacts missing")
+
+    vae_cpu = VAETrainer.load_checkpoint(str(prod_vae), device="cpu")
+    vae_gpu = VAETrainer.load_checkpoint(str(prod_vae), device="cuda")
+    xgb_cpu = XGBoostClassifierWrapper().load(str(prod_xgb), device="cpu")
+    xgb_gpu = XGBoostClassifierWrapper().load(str(prod_xgb), device="cuda")
+
+    # Generate test feature pool (70 features)
+    np.random.seed(42)
+    pool = np.random.randn(5000, 70).astype(np.float32)
+
+    for b in [1, 50, 500, 5000]:
+        xb = pool[:b]
+        vae_c = vae_cpu.compute_anomaly_scores(xb)
+        vae_g = vae_gpu.compute_anomaly_scores(xb)
+        assert np.allclose(vae_c, vae_g, atol=1e-4), f"VAE mismatch on batch {b}"
+
+        xgb_c = xgb_cpu.predict_proba(xb)
+        xgb_g = xgb_gpu.predict_proba(xb)
+        assert np.allclose(xgb_c, xgb_g, atol=1e-4), f"XGBoost mismatch on batch {b}"
+
